@@ -3,843 +3,1154 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Kimia's Kravings | Boutique Editorial</title>
+    <title>Kimia's Kravings | Diabla Experience</title>
 
-    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@300;400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,600;0,800;1,800&display=swap"
       rel="stylesheet"
     />
 
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- Icons -->
-    <script src="https://unpkg.com/feather-icons"></script>
-
-    <!-- Custom CSS -->
     <style>
-      /* Color Palette & Custom Variables */
+      /* --- OFFICIAL DIABLA COLOR SYSTEM & TYPOGRAPHY --- */
       :root {
-        --cream: #fdfaf4;
-        --alabaster: #f4f0e6;
-        --charcoal: #2c2a28;
-        --gold: #b89b5e;
-        --gold-soft: #d9cfbf;
-        --taupe: #8b857d;
-        --ink-muted: #5c5954;
-        --soft-taupe: #a39e96;
+        /* Core Brand Identity Palettes */
+        --diabla-red: #ff3e3e; /* The radiant signature color of Diabla attitude */
+        --diabla-orange: #ff6b35; /* Orange cursor accent */
+        --diabla-anthracite: #111111; /* High-contrast framing charcoal */
+        --diabla-white: #ffffff; /* Pure stark base layout */
+        --diabla-light-grey: #f9f9f9; /* Matte stone neutral background */
+        --diabla-border: #e5e5e5; /* Sharp minimalist grid dividers */
+        --diabla-muted: #666666; /* Sub-text labeling */
+
+        /* Diabla Multi-Tone Accent Blocks */
+        --diabla-sand-yellow: #f4d068; /* Mediterranean sun accent */
+        --diabla-olive-green: #8da082; /* Earthy modern blocking accent */
+        --diabla-dusky-pink: #dfb2b2; /* Sophisticated terracotta pairing tone */
+
+        /* Typography Mapping */
+        --font-diabla:
+          "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
       }
 
-      /* Base Body Styles */
+      /* --- RESET & GEOMETRIC RULES --- */
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
       body {
-        font-family: "Inter", sans-serif;
-        background-color: var(--cream);
-        color: var(--charcoal);
+        background-color: var(--diabla-light-grey);
+        color: var(--diabla-anthracite);
+        font-family: var(--font-diabla);
+        -webkit-font-smoothing: antialiased;
+        line-height: 1.4;
         overflow-x: hidden;
       }
 
-      /* Custom Tailwind Overrides/Shortcuts */
-      .text-cream {
-        color: var(--cream);
-      }
-      .text-alabaster {
-        color: var(--alabaster);
-      }
-      .text-charcoal {
-        color: var(--charcoal);
-      }
-      .text-gold {
-        color: var(--gold);
-      }
-      .text-gold-soft {
-        color: var(--gold-soft);
-      }
-      .text-taupe {
-        color: var(--taupe);
-      }
-      .text-ink-muted {
-        color: var(--ink-muted);
-      }
-      .text-soft-taupe {
-        color: var(--soft-taupe);
+      /* Brutalist Cursor Reset */
+      html,
+      body,
+      a,
+      button,
+      select,
+      input {
+        cursor: none !important;
       }
 
-      .bg-cream {
-        background-color: var(--cream);
+      a {
+        text-decoration: none;
+        color: inherit;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
       }
-      .bg-alabaster {
-        background-color: var(--alabaster);
-      }
-      .bg-charcoal {
-        background-color: var(--charcoal);
-      }
-
-      /* Typography */
-      .eyebrow {
-        font-family: "Inter", sans-serif;
-        font-size: 0.75rem; /* 12px */
-        text-transform: uppercase;
-        letter-spacing: 0.12em;
-        font-weight: 500;
+      img {
+        max-width: 100%;
+        height: auto;
+        display: block;
+        filter: grayscale(8%);
+        transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
       }
 
-      .gold-rule {
-        display: inline-block;
-        height: 1px;
+      ::selection {
+        background-color: var(--diabla-red);
+        color: var(--diabla-white);
+      }
+
+      /* --- BRUTALIST ORANGE CUSTOM POINTER --- */
+      .custom-pointer {
+        width: 10px;
+        height: 10px;
+        background-color: var(--diabla-orange);
+        position: fixed;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+        z-index: 9999;
+        transition:
+          width 0.15s ease,
+          height 0.15s ease,
+          background-color 0.15s ease;
+      }
+
+      /* Hover State Matrix triggered via JS */
+      .custom-pointer.pointer-hover {
         width: 24px;
-        background-color: var(--gold);
+        height: 24px;
+        background-color: transparent;
+        border: 2px solid var(--diabla-orange);
       }
 
-      .divider-dot {
-        display: inline-block;
-        width: 3px;
-        height: 3px;
-        border-radius: 50%;
-        background-color: currentColor;
-        margin: 0 10px;
-        opacity: 0.5;
+      /* Subtle dot indicator centered inside target wrapper */
+      .custom-pointer::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 2px;
+        height: 2px;
+        background-color: var(--diabla-white);
+        opacity: 0;
+        transition: opacity 0.15s ease;
       }
 
-      /* Buttons */
-      .btn-soft {
-        padding: 14px 28px;
-        border: 1px solid var(--charcoal);
-        color: var(--charcoal);
-        font-family: "Inter", sans-serif;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
+      .custom-pointer.pointer-hover::after {
+        background-color: var(--diabla-orange);
+        opacity: 1;
+      }
+
+      /* --- LAYOUT STRUCTURE & RIGID GRIDS --- */
+      .container {
+        max-width: 1440px;
+        margin: 0 auto;
+        padding: 0 2.5rem;
+      }
+      .relative {
+        position: relative;
+      }
+      .absolute {
+        position: absolute;
+      }
+      .overflow-hidden {
+        overflow: hidden;
+      }
+      .flex {
+        display: flex;
+      }
+      .flex-col {
+        flex-direction: column;
+      }
+      .items-center {
+        align-items: center;
+      }
+      .justify-between {
+        justify-content: space-between;
+      }
+      .gap-4 {
+        gap: 1rem;
+      }
+      .gap-8 {
+        gap: 2rem;
+      }
+
+      .grid {
+        display: grid;
+      }
+      .grid-cols-12 {
+        grid-template-columns: repeat(12, 1fr);
+      }
+      .col-12 {
+        grid-column: 1 / -1;
+      }
+
+      .w-full {
+        width: 100%;
+      }
+      .h-full {
+        height: 100%;
+      }
+      .object-cover {
+        object-fit: cover;
+      }
+
+      /* --- DIABLA RADICAL TYPOGRAPHY --- */
+      .diabla-eyebrow {
         font-size: 11px;
-        font-weight: 500;
-        transition: all 0.3s ease;
-        background: transparent;
-      }
-
-      .btn-gold {
-        padding: 14px 28px;
-        border: 1px solid var(--gold-soft);
-        color: var(--cream);
-        font-family: "Inter", sans-serif;
+        letter-spacing: 0.18em;
         text-transform: uppercase;
-        letter-spacing: 0.1em;
-        font-size: 11px;
-        font-weight: 500;
-        transition: all 0.3s ease;
-        background: transparent;
+        font-weight: 800;
+        color: var(--diabla-red);
+      }
+      .text-sm {
+        font-size: 13px;
+        letter-spacing: 0.02em;
+      }
+      .text-muted {
+        color: var(--diabla-muted);
+      }
+      .tracking-stark {
+        letter-spacing: -0.04em;
+        text-transform: uppercase;
+        font-weight: 800;
+      }
+      .leading-tight {
+        line-height: 0.85;
       }
 
-      /* Forms */
-      .editorial-input {
+      /* --- HARD COATED BUTTONS & LINKS --- */
+      .nav-link {
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        font-weight: 800;
+      }
+      .nav-link:hover {
+        color: var(--diabla-red);
+      }
+
+      .btn-primary {
+        background-color: var(--diabla-red);
+        color: var(--diabla-white);
+        padding: 1.1rem 2.2rem;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
         border: none;
-        border-bottom: 1px solid var(--taupe);
-        background: transparent;
-        padding: 12px 0;
-        font-family: "Inter", sans-serif;
-        font-size: 14px;
-        color: var(--charcoal);
-        outline: none;
-        transition: border-color 0.3s ease;
+        transition:
+          background-color 0.2s ease,
+          transform 0.2s ease;
+      }
+      .btn-primary:hover {
+        background-color: var(--diabla-anthracite);
       }
 
-      .editorial-input:focus {
-        border-bottom-color: var(--charcoal);
-      }
-
-      .editorial-input::placeholder {
+      .btn-outline {
+        border: 2px solid var(--diabla-anthracite);
+        color: var(--diabla-anthracite);
+        padding: 1.1rem 2.2rem;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.15em;
         text-transform: uppercase;
-        letter-spacing: 0.1em;
-        font-size: 10px;
-        color: var(--taupe);
+        transition: all 0.2s ease;
+      }
+      .btn-outline:hover {
+        background-color: var(--diabla-anthracite);
+        color: var(--diabla-white);
       }
 
-      /* Header background for scroll effect */
-      .header-bg {
-        background: rgba(253, 250, 244, 0.85);
+      .icon {
+        width: 14px;
+        height: 14px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 3;
+        stroke-linecap: square;
+        stroke-linejoin: miter;
       }
 
-      /* --- SCROLL ANIMATIONS --- */
+      /* --- STICKY NAVIGATION FRAME --- */
+      .header {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: var(--diabla-white);
+        border-bottom: 2px solid var(--diabla-anthracite);
+      }
+      .nav-container {
+        height: 90px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .logo {
+        font-weight: 800;
+        font-size: 24px;
+        letter-spacing: -0.03em;
+        text-transform: uppercase;
+        color: var(--diabla-anthracite);
+      }
+      .logo span {
+        color: var(--diabla-red);
+      }
+      .mobile-menu-btn {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        background: none;
+        border: none;
+      }
+      .mobile-menu-btn span {
+        display: block;
+        width: 28px;
+        height: 3px;
+        background-color: var(--diabla-anthracite);
+      }
+
+      /* --- FULL VIEWPORT HERO LAYOUT --- */
+      .hero-viewport {
+        height: calc(100vh - 90px);
+        min-height: 650px;
+        background-color: var(--diabla-white);
+        border-bottom: 2px solid var(--diabla-anthracite);
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+
+      .hero-split-text {
+        padding: 4rem 2.5rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: flex-start;
+      }
+      .hero-title {
+        font-size: clamp(42px, 6.5vw, 84px);
+        margin-bottom: 1.5rem;
+      }
+
+      .hero-split-image {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        background-color: var(--diabla-light-grey);
+      }
+
+      .hero-badge {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        background: var(--diabla-red);
+        color: var(--diabla-white);
+        padding: 1.25rem 1.75rem;
+        border-top: 2px solid var(--diabla-anthracite);
+        z-index: 20;
+      }
+
+      /* POST-HERO MONOLITHIC STATS GRID */
+      .stats-block-row {
+        border-bottom: 2px solid var(--diabla-anthracite);
+        background: var(--diabla-white);
+      }
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        border-left: 2px solid var(--diabla-anthracite);
+      }
+      .stat-item {
+        padding: 3rem 2rem;
+        border-right: 2px solid var(--diabla-anthracite);
+        border-bottom: 2px solid var(--diabla-anthracite);
+      }
+      .stat-item:nth-child(2n) {
+        border-right: none;
+      }
+
+      /* --- DYNAMIC MARQUEE CAROUSEL --- */
+      .featured-in {
+        border-bottom: 2px solid var(--diabla-anthracite);
+        background-color: var(--diabla-red);
+        color: var(--diabla-white);
+        padding: 2.5rem 0;
+        overflow: hidden;
+        white-space: nowrap;
+        position: relative;
+        display: flex;
+      }
+      .marquee-track {
+        display: flex;
+        align-items: center;
+        animation: marquee 22s linear infinite;
+      }
+      .featured-logos {
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.25em;
+        font-size: 13px;
+        padding-right: 2rem;
+        flex-shrink: 0;
+      }
+      @keyframes marquee {
+        0% {
+          transform: translateX(0%);
+        }
+        100% {
+          transform: translateX(-50%);
+        }
+      }
+
+      /* --- DIABLA-SCALE MASSIVE ABOUT FRAME --- */
+      .about-section {
+        padding: 0;
+        border-bottom: 2px solid var(--diabla-anthracite);
+        background: var(--diabla-white);
+      }
+      .about-split-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+      .about-split-image {
+        position: relative;
+        width: 100%;
+        height: 400px;
+        background-color: var(--diabla-light-grey);
+      }
+      .about-split-image:hover img {
+        transform: scale(1.03);
+      }
+      .about-split-text {
+        padding: 5rem 2.5rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: flex-start;
+      }
+      .about-quote {
+        font-size: clamp(32px, 3.8vw, 52px);
+        margin: 1.5rem 0;
+      }
+
+      /* --- MODULAR CARDS GRID --- */
+      .featured-section {
+        background-color: var(--diabla-light-grey);
+        padding: 8rem 0;
+        border-bottom: 2px solid var(--diabla-anthracite);
+      }
+      .featured-cards {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 2.5rem;
+      }
+      .card {
+        background-color: var(--diabla-white);
+        display: block;
+        border: 2px solid var(--diabla-anthracite);
+      }
+      .card-img-container {
+        aspect-ratio: 1 / 1;
+        position: relative;
+        border-bottom: 2px solid var(--diabla-anthracite);
+        overflow: hidden;
+      }
+      .card:hover img {
+        transform: scale(1.05);
+      }
+      .card-label {
+        position: absolute;
+        top: 0;
+        left: 0;
+        padding: 0.6rem 1.2rem;
+        border-right: 2px solid var(--diabla-anthracite);
+        border-bottom: 2px solid var(--diabla-anthracite);
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        z-index: 10;
+        font-weight: 800;
+        color: var(--diabla-anthracite);
+      }
+      .card-img-container
+        [style*="background-color: var(--diabla-sand-yellow)"] {
+        color: var(--diabla-anthracite) !important;
+      }
+      .card-content {
+        padding: 2rem;
+      }
+      .card-title {
+        font-size: 24px;
+        font-weight: 800;
+        text-transform: uppercase;
+        margin-top: 0.5rem;
+        letter-spacing: -0.02em;
+      }
+
+      /* --- SOLID COLOR BLOCK CTAs --- */
+      .consulting-section {
+        padding: 8rem 0;
+        border-bottom: 2px solid var(--diabla-anthracite);
+      }
+      .consulting-box {
+        background-color: var(--diabla-red);
+        color: var(--diabla-white);
+        padding: 4.5rem;
+        border: 2px solid var(--diabla-anthracite);
+      }
+      .btn-light {
+        background-color: var(--diabla-white);
+        color: var(--diabla-anthracite);
+        padding: 1.25rem 2rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        font-size: 11px;
+        letter-spacing: 0.15em;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border: none;
+        transition:
+          background 0.2s,
+          color 0.2s;
+      }
+      .btn-light:hover {
+        background-color: var(--diabla-anthracite);
+        color: var(--diabla-white);
+      }
+
+      /* --- MONOCHROMATIC FOOTER MATRIX --- */
+      .footer {
+        background-color: var(--diabla-anthracite);
+        color: var(--diabla-white);
+        padding: 7rem 0 3.5rem;
+      }
+      .footer-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 4rem;
+        margin-bottom: 5rem;
+      }
+      .footer-logo {
+        font-weight: 800;
+        font-size: 36px;
+        text-transform: uppercase;
+        letter-spacing: -0.03em;
+        margin-bottom: 1.5rem;
+      }
+      .footer-logo span {
+        color: var(--diabla-red);
+      }
+      .footer-links-group h4 {
+        font-size: 11px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--diabla-muted);
+        margin-bottom: 1.75rem;
+        font-weight: 800;
+      }
+      .footer-links {
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+      }
+      .footer-links a {
+        color: var(--diabla-light-grey);
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .footer-links a:hover {
+        color: var(--diabla-red);
+      }
+      .footer-bottom {
+        border-top: 1px solid #222222;
+        padding-top: 2.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--diabla-muted);
+      }
+
+      /* --- FADE ANIMATION MECHANICS --- */
       .fade-up {
         opacity: 0;
-        transform: translateY(30px);
+        transform: translateY(24px);
         transition:
-          opacity 1s cubic-bezier(0.16, 1, 0.3, 1),
-          transform 1s cubic-bezier(0.16, 1, 0.3, 1);
-        will-change: opacity, transform;
+          opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+          transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
       }
-
       .fade-up.is-visible {
         opacity: 1;
         transform: translateY(0);
       }
+      .delay-100 {
+        transition-delay: 100ms;
+      }
+      .delay-200 {
+        transition-delay: 200ms;
+      }
 
-      .stagger-1 {
-        transition-delay: 0.1s;
+      /* MEDIA RESPONSIVENESS MATRIX */
+      @media (min-width: 768px) {
+        .desktop-nav {
+          display: flex;
+          gap: 3rem;
+        }
+        .mobile-menu-btn {
+          display: none;
+        }
+
+        /* Hero splits layout on desktop width styles */
+        .hero-viewport {
+          grid-template-columns: 55% 45%;
+        }
+        .hero-split-text {
+          padding: 0 5rem;
+          border-right: 2px solid var(--diabla-anthracite);
+        }
+        .hero-title {
+          font-size: clamp(54px, 6.8vw, 92px);
+        }
+        .hero-badge {
+          border-right: 2px solid var(--diabla-anthracite);
+        }
+
+        /* About viewport mirror splits style */
+        .about-split-grid {
+          grid-template-columns: 45% 55%;
+          min-height: calc(100vh - 90px);
+        }
+        .about-split-image {
+          height: auto;
+          border-right: 2px solid var(--diabla-anthracite);
+        }
+        .about-split-text {
+          padding: 0 5rem;
+        }
+
+        .col-md-5 {
+          grid-column: span 5;
+        }
+        .col-md-6 {
+          grid-column: span 6;
+        }
+        .col-md-start-7 {
+          grid-column-start: 7;
+        }
+
+        .stats-grid {
+          grid-template-columns: repeat(4, 1fr);
+          border-left: none;
+        }
+        .stat-item {
+          border-bottom: none;
+        }
+        .stat-item:important {
+          border-right: 2px solid var(--diabla-anthracite);
+        }
+        .stat-item:last-child {
+          border-right: none;
+        }
+
+        .featured-cards {
+          grid-template-columns: repeat(3, 1fr);
+        }
+        .consulting-box {
+          padding: 6rem;
+        }
+        .footer-grid {
+          grid-template-columns: 2fr 1fr 1fr;
+        }
+        .footer-bottom {
+          flex-direction: row;
+        }
       }
-      .stagger-2 {
-        transition-delay: 0.2s;
+      @media (min-width: 1024px) {
+        .col-lg-5 {
+          grid-column: span 5;
+        }
+        .col-lg-7 {
+          grid-column: span 7;
+        }
       }
-      .stagger-3 {
-        transition-delay: 0.3s;
+      @media (max-width: 767px) {
+        .desktop-nav {
+          display: none;
+        }
+        .hero-viewport {
+          height: auto;
+          min-height: calc(100vh - 90px);
+        }
+        .hero-split-image {
+          height: 350px;
+          border-top: 2px solid var(--diabla-anthracite);
+        }
+
+        /* Disable custom cursor on mobile views for classic touch interactions */
+        .custom-pointer {
+          display: none !important;
+        }
+        html,
+        body,
+        a,
+        button {
+          cursor: auto !important;
+        }
       }
     </style>
   </head>
-  <body class="antialiased selection:bg-[#B89B5E] selection:text-white">
-    <!-- NAVIGATION -->
-    <header
-      class="sticky top-0 z-40 backdrop-blur-md transition-all duration-300 header-bg border-b border-[#D9CFBF]/50"
-    >
-      <div
-        class="max-w-[1400px] mx-auto px-8 lg:px-16 py-6 flex items-center justify-between"
-      >
-        <a href="#" class="text-left group">
-          <div
-            class="font-serif italic text-[22px] text-charcoal leading-none group-hover:text-gold transition-colors duration-300"
-          >
-            Kimia's Kravings
-          </div>
-          <div class="eyebrow mt-1 text-[9px]">KEEP KRAVING</div>
-        </a>
+  <body>
+    <div class="custom-pointer" id="pointer"></div>
 
-        <nav class="hidden md:flex items-center gap-10">
+    <header class="header" id="header">
+      <div class="container nav-container">
+        <a href="#" class="logo">Kimia's Kravings<span>.</span></a>
+
+        <nav class="desktop-nav items-center">
+          <a href="#home" class="nav-link">Home</a>
+          <a href="#about" class="nav-link">About Kimia</a>
+          <a href="#blog" class="nav-link">Blog</a>
+          <a href="#consulting" class="nav-link">Consulting</a>
+          <a href="#contact" class="nav-link">Contact</a>
           <a
-            href="#"
-            class="eyebrow text-[11px] text-gold transition-colors hover:text-gold"
-            >Home</a
+            href="#contact"
+            class="btn-primary"
+            style="padding: 0.75rem 1.5rem; font-size: 11px"
           >
-          <a
-            href="#"
-            class="eyebrow text-[11px] text-charcoal transition-colors hover:text-gold"
-            >About</a
-          >
-          <a
-            href="#"
-            class="eyebrow text-[11px] text-charcoal transition-colors hover:text-gold"
-            >Journal</a
-          >
-          <a
-            href="#"
-            class="eyebrow text-[11px] text-charcoal transition-colors hover:text-gold"
-            >Consulting</a
-          >
-          <a
-            href="#"
-            class="eyebrow text-[11px] text-charcoal transition-colors hover:text-gold"
-            >Press</a
-          >
-          <a
-            href="#"
-            class="eyebrow text-[11px] text-charcoal transition-colors hover:text-gold"
-            >Contact</a
-          >
+            Work With Kimia
+          </a>
         </nav>
 
-        <a
-          href="#"
-          class="hidden md:inline-flex eyebrow items-center gap-2 text-charcoal hover:text-gold transition-colors"
-        >
-          <span class="gold-rule"></span> Work with me
-        </a>
-
-        <button
-          id="mobile-menu-btn"
-          class="md:hidden text-charcoal hover:text-gold transition-colors"
-          aria-label="Menu"
-        >
-          <i data-feather="menu"></i>
+        <button class="mobile-menu-btn" aria-label="Toggle Menu">
+          <span></span>
+          <span></span>
         </button>
-      </div>
-
-      <!-- Mobile Menu -->
-      <div
-        id="mobile-menu"
-        class="hidden md:hidden px-8 pb-6 flex-col gap-4 border-t border-[#D9CFBF]/50 absolute w-full bg-[#fdfaf4] shadow-lg"
-      >
-        <a href="#" class="eyebrow text-left py-2 text-gold mt-4">Home</a>
-        <a href="#" class="eyebrow text-left py-2 text-charcoal">About</a>
-        <a href="#" class="eyebrow text-left py-2 text-charcoal">Journal</a>
-        <a href="#" class="eyebrow text-left py-2 text-charcoal">Consulting</a>
-        <a href="#" class="eyebrow text-left py-2 text-charcoal">Press</a>
-        <a href="#" class="eyebrow text-left py-2 text-charcoal">Contact</a>
       </div>
     </header>
 
-    <main>
-      <!-- FULL VIEWPORT HERO SECTION -->
-      <section
-        class="relative h-screen min-h-[600px] w-full flex items-center overflow-hidden"
-      >
-        <!-- Background Image & Gradient Overlay -->
-        <div class="absolute inset-0 z-0">
-          <img
-            src="Untitled design (18).png"
-            alt="Kimia"
-            class="w-full h-full object-cover"
-          />
-          <div
-            class="absolute inset-0 bg-gradient-to-r from-[#2c2a28]/80 via-[#2c2a28]/40 to-transparent"
-          ></div>
+    <section class="hero-viewport overflow-hidden">
+      <div class="hero-split-text fade-up">
+        <div class="flex items-center gap-4" style="margin-bottom: 1.5rem">
+          <span class="diabla-eyebrow">FOOD * TRAVEL * LIFE * BRAND</span>
         </div>
-
-        <div
-          class="relative z-10 max-w-[1500px] w-full mx-auto px-8 lg:px-16 grid lg:grid-cols-12 gap-12 items-center"
+        <h1 class="hero-title tracking-stark leading-tight">
+          Your ultimate<br />go-to Guide for<br />where to Eat,<br />Drink &
+          Live
+        </h1>
+        <p
+          class="text-muted"
+          style="
+            max-width: 32rem;
+            margin-top: 1rem;
+            font-size: 15px;
+            color: #ff3e3e;
+          "
         >
-          <div class="lg:col-span-8 xl:col-span-6 fade-up stagger-1">
-            <div class="eyebrow mb-8 flex items-center text-gold-soft">
-              <span class="gold-rule mr-3 bg-gold-soft"></span>food + travel +
-              lifestyle
-            </div>
-            <h1
-              class="font-serif text-[clamp(48px,6vw,88px)] leading-[1.05] tracking-[-0.01em] text-cream drop-shadow-lg"
-            >
-              Your ultimate go-to guide
-              <span class="italic" style="color: #e3b709">where to eat</span>,
-              drink & be merry.
-            </h1>
-            <p
-              class="mt-8 font-serif text-[18px] leading-[1.7] text-alabaster max-w-[480px] drop-shadow-md"
-            >
-              A San Francisco-based lifestyle brand exploring the intersection
-              of food, travel, and modern living. Join 72K+ followers on a
-              journey through restaurant reviews, travel diaries, and editorial
-              content.
-            </p>
-            <div class="mt-12 flex flex-wrap gap-6 items-center">
-              <button
-                class="btn-gold hover:bg-cream hover:text-charcoal transition-colors flex items-center gap-2 group"
-              >
-                Work with me
-                <i
-                  data-feather="arrow-right"
-                  class="w-4 h-4 group-hover:translate-x-1 transition-transform"
-                ></i>
-              </button>
-              <button
-                class="eyebrow flex items-center gap-3 text-cream hover:text-gold transition-colors group"
-              >
-                <span
-                  class="gold-rule bg-cream group-hover:w-8 group-hover:bg-gold transition-all"
-                ></span>
-                Meet Kimia
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Photo Credit overlay -->
-        <div
-          class="absolute bottom-8 left-8 right-8 lg:left-16 lg:right-16 flex justify-between eyebrow text-[10px] text-white/70 z-10"
-        >
-          <span>Photographed in Florence</span>
-          <span>14.V.MMXXVI</span>
-        </div>
-      </section>
-
-      <!-- ABOUT INTRO -->
-      <section class="py-32 bg-alabaster">
-        <div
-          class="max-w-[1200px] mx-auto px-8 lg:px-16 grid md:grid-cols-12 gap-16 items-center"
-        >
-          <div class="md:col-span-4 fade-up">
-            <img
-              src="5ffaaa20-c9ed-45fb-b1e5-eb05d34aa6fd.jpeg"
-              alt="Portrait"
-              class="w-full h-[520px] object-cover"
-            />
-          </div>
-          <div class="md:col-span-8 fade-up stagger-2">
-            <div class="eyebrow mb-6 text-ink-muted">A Note from Kimia</div>
-            <p
-              class="font-serif italic text-[clamp(28px,3vw,38px)] leading-[1.4] text-charcoal"
-            >
-              "I believe in the art of slow living—in savoring every moment,
-              every texture, every experience. Here, you'll find curated
-              journeys through conscious luxury, mindful travel, and the quiet
-              beauty of intentional living."
-            </p>
-            <button
-              class="mt-10 eyebrow flex items-center gap-3 text-gold hover:text-charcoal transition-colors group"
-            >
-              Read her story
-              <i
-                data-feather="arrow-right"
-                class="w-4 h-4 group-hover:translate-x-1 transition-transform"
-              ></i>
-            </button>
-          </div>
-        </div>
-      </section>
-
-      <!-- FEATURED POSTS -->
-      <section class="py-32 bg-cream">
-        <div class="max-w-[1400px] mx-auto px-8 lg:px-16">
-          <div class="flex items-end justify-between mb-16 fade-up">
-            <div>
-              <div class="eyebrow mb-4 text-ink-muted">
-                Featured · The Curation
-              </div>
-              <h2
-                class="font-serif text-[clamp(36px,4vw,56px)] leading-[1.1] text-charcoal"
-              >
-                This season's <span class="italic text-gold">stories</span>.
-              </h2>
-            </div>
-            <button
-              class="hidden md:inline-flex eyebrow items-center gap-3 text-charcoal hover:text-gold transition-colors group"
-            >
-              All Journal Entries
-              <i
-                data-feather="arrow-right"
-                class="w-4 h-4 group-hover:translate-x-1 transition-transform"
-              ></i>
-            </button>
-          </div>
-
-          <div class="grid md:grid-cols-3 gap-12">
-            <!-- Article 1 -->
-            <article class="group cursor-pointer fade-up stagger-1">
-              <div class="overflow-hidden mb-6">
-                <img
-                  src="https://images.unsplash.com/photo-1769886250520-ce0f9abbcc9d?w=900&q=80"
-                  alt="Travel"
-                  class="w-full h-[440px] object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-              </div>
-              <div class="eyebrow mb-3 text-ink-muted flex items-center">
-                Lifestyle <span class="divider-dot"></span> May 2024
-              </div>
-              <h3
-                class="font-serif text-[24px] leading-[1.3] text-charcoal group-hover:text-gold transition-colors"
-              >
-                Empower your wellness with Ella
-              </h3>
-            </article>
-
-            <!-- Article 2 -->
-            <article class="group cursor-pointer fade-up stagger-2">
-              <div class="overflow-hidden mb-6">
-                <img
-                  src="https://images.unsplash.com/photo-1507553794001-eedbfd3340e4?w=900&q=80"
-                  alt="Food"
-                  class="w-full h-[440px] object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-              </div>
-              <div class="eyebrow mb-3 text-ink-muted flex items-center">
-                Food <span class="divider-dot"></span> March 2024
-              </div>
-              <h3
-                class="font-serif text-[24px] leading-[1.3] text-charcoal group-hover:text-gold transition-colors"
-              >
-                Start Your Day with a Warm Bowl of Naked Protein Cinnamon Oats
-              </h3>
-            </article>
-
-            <!-- Article 3 -->
-            <article class="group cursor-pointer fade-up stagger-3">
-              <div class="overflow-hidden mb-6">
-                <img
-                  src="https://images.unsplash.com/photo-1667312939978-64cf31718a6e?w=900&q=80"
-                  alt="Lifestyle"
-                  class="w-full h-[440px] object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-              </div>
-              <div class="eyebrow mb-3 text-ink-muted flex items-center">
-                Lifestyle <span class="divider-dot"></span> May 2019
-              </div>
-              <h3
-                class="font-serif text-[24px] leading-[1.3] text-charcoal group-hover:text-gold transition-colors"
-              >
-                Mindful Meals in the Marina
-              </h3>
-            </article>
-            <!-- Article 1 -->
-            <article class="group cursor-pointer fade-up stagger-1">
-              <div class="overflow-hidden mb-6">
-                <img
-                  src="https://images.unsplash.com/photo-1769886250520-ce0f9abbcc9d?w=900&q=80"
-                  alt="Travel"
-                  class="w-full h-[440px] object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-              </div>
-              <div class="eyebrow mb-3 text-ink-muted flex items-center">
-                Lifestyle <span class="divider-dot"></span> May 2024
-              </div>
-              <h3
-                class="font-serif text-[24px] leading-[1.3] text-charcoal group-hover:text-gold transition-colors"
-              >
-                Empower your wellness with Ella
-              </h3>
-            </article>
-
-            <!-- Article 2 -->
-            <article class="group cursor-pointer fade-up stagger-2">
-              <div class="overflow-hidden mb-6">
-                <img
-                  src="https://images.unsplash.com/photo-1507553794001-eedbfd3340e4?w=900&q=80"
-                  alt="Food"
-                  class="w-full h-[440px] object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-              </div>
-              <div class="eyebrow mb-3 text-ink-muted flex items-center">
-                Food <span class="divider-dot"></span> March 2024
-              </div>
-              <h3
-                class="font-serif text-[24px] leading-[1.3] text-charcoal group-hover:text-gold transition-colors"
-              >
-                Start Your Day with a Warm Bowl of Naked Protein Cinnamon Oats
-              </h3>
-            </article>
-
-            <!-- Article 3 -->
-            <article class="group cursor-pointer fade-up stagger-3">
-              <div class="overflow-hidden mb-6">
-                <img
-                  src="https://images.unsplash.com/photo-1667312939978-64cf31718a6e?w=900&q=80"
-                  alt="Lifestyle"
-                  class="w-full h-[440px] object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-              </div>
-              <div class="eyebrow mb-3 text-ink-muted flex items-center">
-                Lifestyle <span class="divider-dot"></span> May 2019
-              </div>
-              <h3
-                class="font-serif text-[24px] leading-[1.3] text-charcoal group-hover:text-gold transition-colors"
-              >
-                Mindful Meals in the Marina
-              </h3>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <!-- AS FEATURED IN -->
-      <section class="py-20 border-y border-taupe/30 bg-cream fade-up">
-        <div class="max-w-[1400px] mx-auto px-8 lg:px-16">
-          <div class="eyebrow text-center mb-10 text-ink-muted">
-            As Featured In
-          </div>
-          <div
-            class="flex flex-wrap items-center justify-center gap-x-16 gap-y-6"
-          >
-            <div
-              class="font-serif italic text-[20px] text-soft-taupe tracking-[0.05em] hover:text-charcoal transition-colors cursor-default"
-            >
-              VOGUE
-            </div>
-            <div
-              class="font-serif italic text-[20px] text-soft-taupe tracking-[0.05em] hover:text-charcoal transition-colors cursor-default"
-            >
-              CONDÉ NAST
-            </div>
-            <div
-              class="font-serif italic text-[20px] text-soft-taupe tracking-[0.05em] hover:text-charcoal transition-colors cursor-default"
-            >
-              GOOP
-            </div>
-            <div
-              class="font-serif italic text-[20px] text-soft-taupe tracking-[0.05em] hover:text-charcoal transition-colors cursor-default"
-            >
-              T MAGAZINE
-            </div>
-            <div
-              class="font-serif italic text-[20px] text-soft-taupe tracking-[0.05em] hover:text-charcoal transition-colors cursor-default"
-            >
-              BON APPÉTIT
-            </div>
-            <div
-              class="font-serif italic text-[20px] text-soft-taupe tracking-[0.05em] hover:text-charcoal transition-colors cursor-default"
-            >
-              MR PORTER
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- CONSULTING SPOTLIGHT -->
-      <section class="py-32 bg-charcoal text-cream">
-        <div
-          class="max-w-[1400px] mx-auto px-8 lg:px-16 grid lg:grid-cols-12 gap-16 items-center"
-        >
-          <div class="lg:col-span-6 fade-up">
-            <div class="overflow-hidden">
-              <img
-                src="https://images.unsplash.com/photo-1755288556428-f13446a6461f?w=1200&q=80"
-                alt="Consulting"
-                class="w-full h-[560px] object-cover hover:scale-105 transition-transform duration-1000"
-              />
-            </div>
-          </div>
-          <div class="lg:col-span-6 fade-up stagger-2">
-            <div class="eyebrow mb-6 text-gold-soft">Professional Services</div>
-            <h2 class="font-serif text-[clamp(40px,4.5vw,64px)] leading-[1.1]">
-              Strategy for the
-              <span class="italic text-gold-soft">thoughtful</span> brand.
-            </h2>
-            <p
-              class="mt-8 font-serif text-[17px] leading-[1.8] text-taupe max-w-lg"
-            >
-              From content direction to long-form brand partnership —From
-              content direction to long-form brand partnerships — bespoke
-              consulting for modern brands and growing businesses.
-            </p>
-            <div class="mt-10 flex flex-wrap gap-6 items-center">
-              <button
-                class="btn-gold hover:bg-cream hover:text-charcoal transition-colors"
-              >
-                Explore Services
-              </button>
-              <button
-                class="eyebrow flex items-center gap-3 text-gold-soft hover:text-cream transition-colors group"
-              >
-                <span
-                  class="gold-rule bg-gold-soft group-hover:w-8 transition-all"
-                ></span>
-                Begin a conversation
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- INSTAGRAM -->
-      <section class="py-32 bg-cream">
-        <div class="max-w-[1500px] mx-auto px-8 lg:px-16">
-          <div class="text-center mb-16 fade-up">
-            <a
-              href="#"
-              class="eyebrow mb-4 flex items-center justify-center gap-3 hover:text-gold transition-colors text-ink-muted"
-            >
-              <i data-feather="instagram" class="w-4 h-4"></i> @kimiaskravings
-            </a>
-            <h2
-              class="font-serif italic text-[clamp(32px,3.5vw,48px)] text-charcoal"
-            >
-              Live from the camera roll
-            </h2>
-          </div>
-
-          <div class="grid grid-cols-2 md:grid-cols-6 gap-2 fade-up stagger-1">
-            <a href="#" class="block overflow-hidden group"
-              ><img
-                src="https://images.unsplash.com/photo-1565631745794-05840116e09b?w=600&q=80"
-                alt="IG"
-                class="aspect-square w-full object-cover transition-transform duration-700 group-hover:scale-110"
-            /></a>
-            <a href="#" class="block overflow-hidden group"
-              ><img
-                src="https://images.unsplash.com/photo-1572853566597-b83cde546912?w=600&q=80"
-                alt="IG"
-                class="aspect-square w-full object-cover transition-transform duration-700 group-hover:scale-110"
-            /></a>
-            <a href="#" class="block overflow-hidden group"
-              ><img
-                src="https://images.unsplash.com/photo-1767288533191-cc2c72bad9c9?w=600&q=80"
-                alt="IG"
-                class="aspect-square w-full object-cover transition-transform duration-700 group-hover:scale-110"
-            /></a>
-            <a href="#" class="block overflow-hidden group"
-              ><img
-                src="https://images.unsplash.com/photo-1478145971721-10511ecaf005?w=600&q=80"
-                alt="IG"
-                class="aspect-square w-full object-cover transition-transform duration-700 group-hover:scale-110"
-            /></a>
-            <a href="#" class="block overflow-hidden group"
-              ><img
-                src="https://images.unsplash.com/photo-1598184274799-9caf3262089a?w=600&q=80"
-                alt="IG"
-                class="aspect-square w-full object-cover transition-transform duration-700 group-hover:scale-110"
-            /></a>
-            <a href="#" class="block overflow-hidden group"
-              ><img
-                src="https://images.unsplash.com/photo-1729086046027-09979ade13fd?w=600&q=80"
-                alt="IG"
-                class="aspect-square w-full object-cover transition-transform duration-700 group-hover:scale-110"
-            /></a>
-          </div>
-        </div>
-      </section>
-
-      <!-- NEWSLETTER -->
-      <section class="py-32 bg-alabaster fade-up">
-        <div class="max-w-[800px] mx-auto px-8 text-center">
-          <div class="eyebrow mb-6 text-ink-muted"></div>
-          <h2
-            class="font-serif text-[clamp(40px,4.5vw,60px)] leading-[1.1] text-charcoal"
-          >
-            Lets Bring Your,
-            <span class="italic text-gold">Visions to Life</span>.
-          </h2>
-          <p class="mt-6 font-serif text-[16px] leading-[1.8] text-ink-muted">
-            Ready to elevate your brand presence or collaborate on a curated
-            project? Select a path below to discover consulting options or
-            initiate a direct partnership inquiry.
-          </p>
-          <form
-            class="mt-12 flex flex-col sm:flex-row gap-6 items-end justify-center max-w-md mx-auto"
-            onsubmit="event.preventDefault()"
-          >
-            <div class="w-full text-left">
-              <input
-                type="email"
-                placeholder="your email address"
-                required
-                class="editorial-input w-full"
-              />
-            </div>
-            <button
-              type="submit"
-              class="btn-soft whitespace-nowrap w-full sm:w-auto hover:bg-charcoal hover:text-cream hover:border-charcoal transition-all"
-            >
-              Send to Kimia
-            </button>
-          </form>
-        </div>
-      </section>
-    </main>
-
-    <!-- FOOTER -->
-    <footer class="bg-charcoal text-cream mt-0 pt-20">
-      <div
-        class="max-w-[1400px] mx-auto px-8 lg:px-16 pb-20 grid md:grid-cols-4 gap-12"
-      >
-        <div class="md:col-span-2">
-          <div class="font-serif italic text-[32px]">Kimia's Kravings</div>
-          <p
-            class="mt-6 max-w-md font-serif italic text-taupe text-[16px] leading-[1.7]"
-          >
-            "A quiet rebellion against the loud internet — a slower, more
-            curated way to live, travel, and taste."
-          </p>
-          <div class="mt-10 flex items-center gap-4">
-            <a
-              href="#"
-              class="text-gold-soft hover:text-white transition-colors"
-              ><i data-feather="instagram" class="w-4 h-4"></i
-            ></a>
-            <span class="eyebrow text-taupe text-[10px]">@kimiaskravings</span>
-          </div>
-        </div>
-
-        <div>
-          <div class="eyebrow mb-6 text-gold-soft text-[10px]">Explore</div>
-          <ul class="space-y-3">
-            <li>
-              <a
-                href="#"
-                class="font-serif text-cream text-[16px] hover:text-gold-soft transition-colors"
-                >Home</a
-              >
-            </li>
-            <li>
-              <a
-                href="#"
-                class="font-serif text-cream text-[16px] hover:text-gold-soft transition-colors"
-                >About</a
-              >
-            </li>
-            <li>
-              <a
-                href="#"
-                class="font-serif text-cream text-[16px] hover:text-gold-soft transition-colors"
-                >Journal</a
-              >
-            </li>
-            <li>
-              <a
-                href="#"
-                class="font-serif text-cream text-[16px] hover:text-gold-soft transition-colors"
-                >Consulting</a
-              >
-            </li>
-            <li>
-              <a
-                href="#"
-                class="font-serif text-cream text-[16px] hover:text-gold-soft transition-colors"
-                >Press</a
-              >
-            </li>
-            <li>
-              <a
-                href="#"
-                class="font-serif text-cream text-[16px] hover:text-gold-soft transition-colors"
-                >Contact</a
-              >
-            </li>
-          </ul>
-        </div>
-
-        <div>
-          <div class="eyebrow mb-6 text-gold-soft text-[10px]">The Letter</div>
-          <p class="font-serif text-taupe text-[14px] leading-[1.7]">
-            A monthly missive of slow travel, considered style, and the recipes
-            worth keeping.
-          </p>
-          <button
-            class="mt-6 eyebrow text-gold-soft text-[10px] hover:text-white transition-colors group flex items-center gap-2"
-          >
-            Subscribe
-            <i
-              data-feather="arrow-right"
-              class="w-3 h-3 group-hover:translate-x-1 transition-transform"
-            ></i>
-          </button>
+          A San Francisco-based lifestyle brand exploring the intersection of
+          food, travel, and modern living. Join 76K+ followers on a journey
+          through restaurant reviews and editorial content.
+        </p>
+        <div class="flex items-center gap-4" style="margin-top: 2.5rem">
+          <a href="#blog" class="btn-primary">
+            Work with Kimia
+            <svg class="icon"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+          </a>
+          <a href="#about" class="btn-outline"> Meet Kimia </a>
         </div>
       </div>
 
-      <div class="border-t border-[#D9CFBF]/15">
+      <div class="hero-split-image overflow-hidden fade-up delay-100">
+        <img
+          src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1080&q=80"
+          alt="Editorial layout graphic"
+          class="w-full h-full object-cover"
+        />
+        <div class="hero-badge">
+          <div
+            style="
+              font-size: 10px;
+              font-weight: 800;
+              text-transform: uppercase;
+              letter-spacing: 0.1em;
+              color: #fff;
+            "
+          >
+            Featured On
+          </div>
+          <div
+            style="
+              margin-top: 0.25rem;
+              font-size: 13px;
+              font-weight: 800;
+              text-transform: uppercase;
+              letter-spacing: 0.05em;
+              color: #fff;
+            "
+          >
+            Forbes / Tribes / Vogue
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="stats-block-row">
+      <div class="container">
+        <div class="stats-grid fade-up delay-200">
+          <div class="stat-item">
+            <div class="tracking-stark leading-tight" style="font-size: 52px">
+              76K+
+            </div>
+            <div class="diabla-eyebrow" style="margin-top: 0.75rem">
+              Followers
+            </div>
+          </div>
+          <div class="stat-item">
+            <div class="tracking-stark leading-tight" style="font-size: 52px">
+              38
+            </div>
+            <div class="diabla-eyebrow" style="margin-top: 0.75rem">Cities</div>
+          </div>
+          <div class="stat-item">
+            <div class="tracking-stark leading-tight" style="font-size: 52px">
+              1.2M
+            </div>
+            <div class="diabla-eyebrow" style="margin-top: 0.75rem">
+              Readers
+            </div>
+          </div>
+          <div class="stat-item">
+            <div class="tracking-stark leading-tight" style="font-size: 52px">
+              12
+            </div>
+            <div class="diabla-eyebrow" style="margin-top: 0.75rem">
+              Partners
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="featured-in">
+      <div class="marquee-track">
+        <div class="featured-logos">
+          AS SEEN IN &nbsp;&bull;&nbsp; VOGUE &nbsp;&bull;&nbsp; NYT TRAVEL
+          &nbsp;&bull;&nbsp; EATER &nbsp;&bull;&nbsp; CONDÉ NAST
+          &nbsp;&bull;&nbsp; FORBES &nbsp;&bull;&nbsp;
+        </div>
+        <div class="featured-logos">
+          AS SEEN IN &nbsp;&bull;&nbsp; VOGUE &nbsp;&bull;&nbsp; NYT TRAVEL
+          &nbsp;&bull;&nbsp; EATER &nbsp;&bull;&nbsp; CONDÉ NAST
+          &nbsp;&bull;&nbsp; FORBES &nbsp;&bull;&nbsp;
+        </div>
+      </div>
+    </div>
+
+    <section class="about-section" id="about">
+      <div class="about-split-grid">
+        <div class="about-split-image overflow-hidden fade-up">
+          <img
+            src="UNIT 90K (21).png"
+            alt="Kimia Portrait"
+            class="w-full h-full object-cover"
+          />
+        </div>
+
+        <div class="about-split-text fade-up delay-100">
+          <div class="diabla-eyebrow" style="margin-bottom: 1rem">
+            About Kimia
+          </div>
+          <h2 class="about-quote tracking-stark leading-tight">
+            "I believe in the art of slow living—in savoring every single
+            experience"
+          </h2>
+          <p
+            class="text-muted"
+            style="max-width: 32rem; margin-top: 2rem; font-size: 15px"
+          >
+            A San Francisco-based food, travel, and lifestyle blogger turned
+            brand consultant. Whether I'm hunting down the best hidden ramen
+            spot or helping brands show up authentically online, I bring the
+            same energy: genuine, curious, and always hungry for more.
+          </p>
+          <div>
+            <a
+              href="#about-full"
+              class="btn-outline"
+              style="margin-top: 2.5rem; display: inline-block"
+            >
+              Read her story
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="featured-section" id="blog">
+      <div class="container">
         <div
-          class="max-w-[1400px] mx-auto px-8 lg:px-16 py-6 flex flex-col md:flex-row justify-between gap-4 eyebrow text-taupe text-[10px]"
+          class="flex items-center justify-between"
+          style="margin-bottom: 4rem"
         >
-          <div>&copy; MMXXVI Kimia's Kravings &middot; All Rights Reserved</div>
-          <div>kimiaskravings.com &middot; Made with intention</div>
+          <h2 class="tracking-stark" style="font-size: 38px">
+            Latest on the Blog
+          </h2>
+          <a href="#all" class="nav-link" style="color: var(--diabla-red)"
+            >View All &rarr;</a
+          >
+        </div>
+
+        <div class="featured-cards">
+          <div class="card fade-up">
+            <div class="card-img-container">
+              <span
+                class="card-label"
+                style="background-color: var(--diabla-sand-yellow)"
+                >Food</span
+              >
+              <img
+                src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800"
+                alt="Food Entry"
+                class="w-full h-full object-cover"
+              />
+            </div>
+            <div class="card-content">
+              <span class="diabla-eyebrow" style="font-size: 10px"
+                >San Francisco</span
+              >
+              <h3 class="card-title">
+                The Absolute Best Late-Night Ramen Spots
+              </h3>
+            </div>
+          </div>
+
+          <div class="card fade-up delay-100">
+            <div class="card-img-container">
+              <span
+                class="card-label"
+                style="background-color: var(--diabla-dusky-pink)"
+                >Travel</span
+              >
+              <img
+                src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800"
+                alt="Travel Entry"
+                class="w-full h-full object-cover"
+              />
+            </div>
+            <div class="card-content">
+              <span class="diabla-eyebrow" style="font-size: 10px"
+                >Japan Diaries</span
+              >
+              <h3 class="card-title">
+                7 Days in Kyoto: An Off-The-Beaten Path Itinerary
+              </h3>
+            </div>
+          </div>
+
+          <div class="card fade-up delay-200">
+            <div class="card-img-container">
+              <span
+                class="card-label"
+                style="background-color: var(--diabla-olive-green)"
+                >Lifestyle</span
+              >
+              <img
+                src="https://images.unsplash.com/photo-1513694203232-719a280e022f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800"
+                alt="Lifestyle Entry"
+                class="w-full h-full object-cover"
+              />
+            </div>
+            <div class="card-content">
+              <span class="diabla-eyebrow" style="font-size: 10px"
+                >Design Systems</span
+              >
+              <h3 class="card-title">
+                Curating a Mindful & Minimal Living Space
+              </h3>
+            </div>
+          </div>
+
+          <div class="card fade-up" style="margin-top: 1rem">
+            <div class="card-img-container">
+              <span
+                class="card-label"
+                style="background-color: var(--diabla-dusky-pink)"
+                >Drinks</span
+              >
+              <img
+                src="https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800"
+                alt="Mixology Entry"
+                class="w-full h-full object-cover"
+              />
+            </div>
+            <div class="card-content">
+              <span class="diabla-eyebrow" style="font-size: 10px"
+                >Hidden Bars</span
+              >
+              <h3 class="card-title">
+                Behind Closed Doors: SF's Underground Speakeasies
+              </h3>
+            </div>
+          </div>
+
+          <div class="card fade-up delay-100" style="margin-top: 1rem">
+            <div class="card-img-container">
+              <span
+                class="card-label"
+                style="background-color: var(--diabla-sand-yellow)"
+                >Culture</span
+              >
+              <img
+                src="https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800"
+                alt="Coffee Culture Entry"
+                class="w-full h-full object-cover"
+              />
+            </div>
+            <div class="card-content">
+              <span class="diabla-eyebrow" style="font-size: 10px"
+                >Morning Rituals</span
+              >
+              <h3 class="card-title">
+                The Rise of High-Design Minimalist Espresso Bars
+              </h3>
+            </div>
+          </div>
+
+          <div class="card fade-up delay-200" style="margin-top: 1rem">
+            <div class="card-img-container">
+              <span
+                class="card-label"
+                style="background-color: var(--diabla-olive-green)"
+                >Escapes</span
+              >
+              <img
+                src="https://images.unsplash.com/photo-1566073771259-6a8506099945?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800"
+                alt="Hotel Entry"
+                class="w-full h-full object-cover"
+              />
+            </div>
+            <div class="card-content">
+              <span class="diabla-eyebrow" style="font-size: 10px"
+                >Boutique Stay</span
+              >
+              <h3 class="card-title">
+                Architectural Masterpieces You Can Stay In This Year
+              </h3>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="consulting-section" id="consulting">
+      <div class="container">
+        <div class="consulting-box grid grid-cols-12 gap-8 items-center">
+          <div class="col-12 col-md-7">
+            <span class="diabla-eyebrow" style="color: var(--diabla-anthracite)"
+              >Brand Strategy</span
+            >
+            <h2
+              class="tracking-stark leading-tight"
+              style="font-size: 46px; margin: 1.5rem 0"
+            >
+              Want to build an impactful brand presence?
+            </h2>
+            <p
+              style="
+                color: var(--diabla-light-grey);
+                font-size: 15px;
+                max-width: 30rem;
+              "
+            >
+              I collaborate directly with lifestyle, hospitality, and design
+              brands to construct magnetic digital experiences.
+            </p>
+          </div>
+          <div class="col-12 col-md-4 col-md-start-6">
+            <button class="btn-light w-full">
+              Book a Consultation
+              <svg class="icon"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-grid">
+          <div>
+            <div class="footer-logo">Kimia's Kravings<span>.</span></div>
+            <p
+              style="
+                color: var(--diabla-muted);
+                font-size: 13px;
+                max-width: 20rem;
+                text-transform: uppercase;
+                font-weight: 800;
+                letter-spacing: 0.05em;
+              "
+            >
+              Exploring the convergence of taste, locations, and structural
+              aesthetics.
+            </p>
+          </div>
+          <div class="footer-links-group">
+            <h4>Navigation Matrix</h4>
+            <div class="footer-links">
+              <a href="#home">Home</a>
+              <a href="#about">About</a>
+              <a href="#blog">Blog</a>
+              <a href="#consulting">Consulting</a>
+            </div>
+          </div>
+          <div class="footer-links-group">
+            <h4>Social Channels</h4>
+            <div class="footer-links">
+              <a href="#">Instagram</a>
+              <a href="#">Pinterest</a>
+              <a href="#">YouTube</a>
+              <a href="#">LinkedIn</a>
+            </div>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <div>&copy; 2026 Kimia's Kravings. Architectural Concept.</div>
+          <div>All Rights Reserved.</div>
         </div>
       </div>
     </footer>
 
-    <!-- Javascript -->
     <script>
       document.addEventListener("DOMContentLoaded", () => {
-        // 1. Initialize Feather Icons
-        feather.replace();
+        // --- POINTER LOGIC ENGINE ---
+        const pointer = document.getElementById("pointer");
 
-        // 2. Mobile Menu Toggle
-        const mobileMenuBtn = document.getElementById("mobile-menu-btn");
-        const mobileMenu = document.getElementById("mobile-menu");
-
-        mobileMenuBtn.addEventListener("click", () => {
-          mobileMenu.classList.toggle("hidden");
-          mobileMenu.classList.toggle("flex");
-
-          // Toggle Icon between Menu and X
-          const isHidden = mobileMenu.classList.contains("hidden");
-          mobileMenuBtn.innerHTML = isHidden
-            ? '<i data-feather="menu"></i>'
-            : '<i data-feather="x"></i>';
-          feather.replace(); // re-initialize the new icon
+        window.addEventListener("mousemove", (e) => {
+          pointer.style.left = `${e.clientX}px`;
+          pointer.style.top = `${e.clientY}px`;
         });
 
-        // 3. Scroll Animations (Intersection Observer)
+        // Trigger interaction transformation scaling
+        const interactiveElements = document.querySelectorAll(
+          "a, button, .card, .mobile-menu-btn",
+        );
+
+        interactiveElements.forEach((element) => {
+          element.addEventListener("mouseenter", () => {
+            pointer.classList.add("pointer-hover");
+          });
+          element.addEventListener("mouseleave", () => {
+            pointer.classList.remove("pointer-hover");
+          });
+        });
+
+        // --- SCROLL INTERSECTION OBSERVER ---
         const observerOptions = {
           root: null,
           rootMargin: "0px",
-          threshold: 0.15, // Trigger when 15% of the element is visible
+          threshold: 0.1,
         };
 
-        const observer = new IntersectionObserver((entries, observer) => {
+        const observer = new IntersectionObserver((entries) => {
           entries.forEach((entry) => {
             if (entry.isIntersecting) {
-              // Add 'is-visible' class to trigger CSS transition
               entry.target.classList.add("is-visible");
-              // Unobserve to run the animation only once
               observer.unobserve(entry.target);
             }
           });
         }, observerOptions);
 
-        // Grab all elements with the 'fade-up' class and observe them
-        const animatedElements = document.querySelectorAll(".fade-up");
-        animatedElements.forEach((el) => observer.observe(el));
+        document.querySelectorAll(".fade-up").forEach((element) => {
+          observer.observe(element);
+        });
       });
     </script>
   </body>
