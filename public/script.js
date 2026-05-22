@@ -793,7 +793,7 @@ function initGsapEnhancements() {
 
   const blogSection = document.querySelector(".page-index .featured-section");
   const cardsContainer = document.querySelector(".page-index .featured-cards");
-  if (!blogSection || !cardsContainer || window.innerWidth < 768) return;
+  if (!blogSection || !cardsContainer || window.innerWidth < 1024) return;
 
   blogSection.classList.add("gsap-carousel");
   const headingEl = blogSection.querySelector(".featured-header");
