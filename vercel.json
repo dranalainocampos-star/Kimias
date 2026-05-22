@@ -1,28 +1,52 @@
 {
+  "version": 2,
+  "functions": {
+    "api/index.js": {
+      "includeFiles": [
+        "index.html",
+        "about.html",
+        "blog.html",
+        "consulting.html",
+        "contact.html",
+        "admin.html",
+        "style.css",
+        "script.js",
+        "UNIT 90K (28).png",
+        "UNIT 90K (29).png",
+        "UNIT 90K (32).png",
+        "UNIT 90K (34).png",
+        "5ffaaa20-c9ed-45fb-b1e5-eb05d34aa6fd.jpeg"
+      ]
+    }
+  },
   "rewrites": [
     {
+      "source": "/",
+      "destination": "/api/index.js"
+    },
+    {
       "source": "/admin",
-      "destination": "/admin.html"
+      "destination": "/api/index.js"
     },
     {
       "source": "/blog",
-      "destination": "/blog.html"
+      "destination": "/api/index.js"
     },
     {
       "source": "/about",
-      "destination": "/about.html"
+      "destination": "/api/index.js"
     },
     {
       "source": "/consulting",
-      "destination": "/consulting.html"
+      "destination": "/api/index.js"
     },
     {
       "source": "/contact",
-      "destination": "/contact.html"
+      "destination": "/api/index.js"
     },
     {
       "source": "/home",
-      "destination": "/index.html"
+      "destination": "/api/index.js"
     },
     {
       "source": "/api/(.*)",
