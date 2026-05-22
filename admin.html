@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard | Kimia's Kravings</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,600;0,800;1,800&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body class="page-admin">
+    <canvas id="paint-canvas"></canvas>
+    <div id="cursor-dot"></div>
+
+    <div id="loginScreen">
+      <div class="login-box">
+        <div class="login-logo">Kimia's Kravings<span>.</span></div>
+        <div class="login-sub">Secure Admin Portal</div>
+
+        <div class="form-group">
+          <label class="login-label">Access Token / Password</label>
+          <input
+            type="password"
+            id="passInput"
+            class="login-input"
+            placeholder="••••••••"
+          />
+        </div>
+
+        <button class="login-btn" data-action="login">Authorize Session</button>
+        <div class="login-help">Demo token: admin</div>
+        <div id="loginError" class="login-error">
+          Invalid Token. Access Denied.
+        </div>
+      </div>
+    </div>
+
+    <div id="app">
+      <aside class="sidebar">
+        <div class="sidebar-logo">
+          <a href="#">Kimia<span>.</span>Internal</a>
+          <p>Production Hub</p>
+        </div>
+
+        <nav class="sidebar-nav">
+          <div class="nav-section-label">Core Metrics</div>
+          <div class="nav-item active" data-panel="dashboard">
+            <span class="nav-icon">📊</span> Overview
+          </div>
+
+          <div class="nav-section-label">Content Matrix</div>
+          <div class="nav-item" data-panel="blog">
+            <span class="nav-icon">✍️</span> Blog Posts
+          </div>
+          <div class="nav-item" data-panel="comments">
+            <span class="nav-icon">💬</span> Comments
+            <span class="nav-badge" id="badge-comments">0</span>
+          </div>
+
+          <div class="nav-section-label">Operations</div>
+          <div class="nav-item" data-panel="consulting">
+            <span class="nav-icon">💼</span> Consulting
+            <span class="nav-badge" id="badge-consulting">0</span>
+          </div>
+          <div class="nav-item" data-panel="messages">
+            <span class="nav-icon">✉️</span> Messages
+            <span class="nav-badge" id="badge-messages">0</span>
+          </div>
+        </nav>
+
+        <div class="sidebar-footer">
+          <div class="logout-btn" data-action="logout">
+            <span>🔒</span> Terminate Session
+          </div>
+        </div>
+      </aside>
+
+      <main class="main">
+        <header class="topbar">
+          <h1 id="panelTitle">System <em>Overview</em></h1>
+          <div class="topbar-right">
+            <a href="index.html" target="_blank" class="btn btn-outline btn-sm view-site-btn">
+              View Site
+            </a>
+            <div class="avatar">K</div>
+          </div>
+        </header>
+
+        <section id="panel-dashboard" class="panel active">
+          <div class="stats-row">
+            <div class="stat-card">
+              <div class="s-label">Published Posts</div>
+              <div class="s-num" id="stat-publishedPosts">0</div>
+              <div class="s-sub">Live on site</div>
+            </div>
+            <div class="stat-card">
+              <div class="s-label">Consulting Bookings</div>
+              <div class="s-num" id="stat-bookings">0</div>
+              <div class="s-sub u-admin-1">No live booking API yet</div>
+            </div>
+            <div class="stat-card">
+              <div class="s-label">Unread Messages</div>
+              <div class="s-num" id="stat-unreadMsg">0</div>
+              <div class="s-sub u-admin-2">Action Required</div>
+            </div>
+            <div class="stat-card">
+              <div class="s-label">Pending Comments</div>
+              <div class="s-num" id="stat-pendingComm">0</div>
+              <div class="s-sub u-admin-3">Awaiting Moderation</div>
+            </div>
+          </div>
+
+          <div class="dash-grid">
+            <div class="card">
+              <div class="card-title">
+                <span>Recent Site Activity</span>
+              </div>
+              <div class="table-responsive">
+                <table class="posts-table">
+                  <thead>
+                    <tr>
+                      <th>Event Type</th>
+                      <th>Detail Summary</th>
+                      <th>Timestamp</th>
+                    </tr>
+                  </thead>
+                  <tbody id="dashboardActivityLog"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-title">
+                <span>Production Notes</span>
+              </div>
+              <div class="card admin-empty-card">
+                Dashboard metrics now show only real site data. Consulting,
+                comments, and inbox panels will stay empty until those backend
+                workflows are connected.
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="panel-blog" class="panel">
+          <div class="toolbar">
+            <div class="toolbar-left">
+              <button class="filter-tab active" data-post-filter="all">
+                All Posts
+              </button>
+              <button class="filter-tab" data-post-filter="published">
+                Published
+              </button>
+              <button class="filter-tab" data-post-filter="draft">
+                Drafts
+              </button>
+            </div>
+            <button class="btn btn-terra" data-action="open-post-modal">
+              ➕ Create New Entry
+            </button>
+          </div>
+
+          <div class="card">
+            <div class="table-responsive">
+              <table class="posts-table">
+                <thead>
+                  <tr>
+                    <th>Article Title & Snippet</th>
+                    <th>Category</th>
+                    <th>Publish Date</th>
+                    <th>Status</th>
+                    <th>Actions Matrix</th>
+                  </tr>
+                </thead>
+                <tbody id="postsTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section id="panel-comments" class="panel">
+          <div class="toolbar">
+            <div class="toolbar-left">
+              <button class="filter-tab active" data-comment-filter="all">
+                All Comments
+              </button>
+              <button class="filter-tab" data-comment-filter="pending">
+                Pending Moderation
+              </button>
+            </div>
+          </div>
+          <div id="commentsContainer"></div>
+        </section>
+
+        <section id="panel-consulting" class="panel">
+          <div class="card">
+            <div class="table-responsive">
+              <table class="posts-table">
+                <thead>
+                  <tr>
+                    <th>Client</th>
+                    <th>Service Package</th>
+                    <th>Target Date</th>
+                    <th>Proposed Budget</th>
+                    <th>Status Check</th>
+                    <th>Execution</th>
+                  </tr>
+                </thead>
+                <tbody id="consultingTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section id="panel-messages" class="panel">
+          <div class="dash-grid">
+            <div>
+              <div class="messages-list" id="messagesListContainer"></div>
+            </div>
+            <div>
+              <div class="msg-detail-view" id="messageDetailContainer">
+                <p class="u-admin-13">
+                  Select a message payload from the queue to run inspection
+                  protocols.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="modal-overlay" id="postModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h2 id="modalActionTitle">Construct New Blog Post</h2>
+          <button class="modal-close" data-action="close-post-modal">✕</button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="editPostId" />
+          <div class="form-group">
+            <label class="form-label">Post Title</label>
+            <input
+              type="text"
+              id="postTitleInput"
+              class="form-input"
+              placeholder="e.g., Demystifying Complex French Pastries"
+            />
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Category Segment</label>
+              <input
+                type="text"
+                id="postCategoryInput"
+                class="form-input"
+                placeholder="Recipes, Culinary Travels, Culture"
+              />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Publish Authorization Status</label>
+              <select id="postStatusSelect" class="form-input u-admin-14">
+                <option value="Published">Published</option>
+                <option value="Draft">Draft</option>
+                <option value="Scheduled">Scheduled</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Featured Image</label>
+            <input
+              type="url"
+              id="postImageInput"
+              class="form-input"
+              placeholder="Image URL appears here after upload"
+            />
+            <div class="upload-row">
+              <input
+                type="file"
+                id="postImageUploadInput"
+                class="form-input"
+                accept="image/*"
+              />
+              <button
+                type="button"
+                class="btn btn-outline"
+                data-action="upload-post-image"
+              >
+                Upload Image
+              </button>
+            </div>
+            <img
+              id="postImagePreview"
+              class="post-image-preview"
+              alt="Featured image preview"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label"
+              >Content Body Markdown / HTML Structure</label
+            >
+            <textarea
+              id="postContentInput"
+              class="form-input"
+              placeholder="Begin tracking narrative components..."
+            ></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" data-action="close-post-modal">
+            Cancel
+          </button>
+          <button class="btn btn-terra" data-action="save-post">
+            Commit Content Data
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast" class="toast">✓ Success Module Triggered</div>
+    <script src="script.js"></script>
+  </body>
+</html>
