@@ -1,52 +1,33 @@
 {
   "version": 2,
-  "functions": {
-    "api/index.js": {
-      "includeFiles": [
-        "index.html",
-        "about.html",
-        "blog.html",
-        "consulting.html",
-        "contact.html",
-        "admin.html",
-        "style.css",
-        "script.js",
-        "UNIT 90K (28).png",
-        "UNIT 90K (29).png",
-        "UNIT 90K (32).png",
-        "UNIT 90K (34).png",
-        "5ffaaa20-c9ed-45fb-b1e5-eb05d34aa6fd.jpeg"
-      ]
-    }
-  },
   "rewrites": [
     {
       "source": "/",
-      "destination": "/api/index.js"
+      "destination": "/index.html"
     },
     {
       "source": "/admin",
-      "destination": "/api/index.js"
+      "destination": "/admin.html"
     },
     {
       "source": "/blog",
-      "destination": "/api/index.js"
+      "destination": "/blog.html"
     },
     {
       "source": "/about",
-      "destination": "/api/index.js"
+      "destination": "/about.html"
     },
     {
       "source": "/consulting",
-      "destination": "/api/index.js"
+      "destination": "/consulting.html"
     },
     {
       "source": "/contact",
-      "destination": "/api/index.js"
+      "destination": "/contact.html"
     },
     {
       "source": "/home",
-      "destination": "/api/index.js"
+      "destination": "/index.html"
     },
     {
       "source": "/api/(.*)",
