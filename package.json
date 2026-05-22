@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "sync:public": "cp index.html about.html blog.html consulting.html contact.html admin.html style.css script.js \"UNIT 90K (28).png\" \"UNIT 90K (29).png\" \"UNIT 90K (32).png\" \"UNIT 90K (34).png\" \"5ffaaa20-c9ed-45fb-b1e5-eb05d34aa6fd.jpeg\" public/",
-    "start": "node server.js",
-    "dev": "node --watch server.js",
-    "check": "node --check server.js && node --check script.js"
+    "start": "node backend.js",
+    "dev": "node --watch backend.js",
+    "check": "node --check backend.js && node --check script.js"
   },
   "dependencies": {
     "@vercel/blob": "^2.4.0",
