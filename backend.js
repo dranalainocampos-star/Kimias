@@ -359,6 +359,13 @@ app.post("/api/uploads", requireAdmin, upload.single("image"), async (req, res, 
       return res.status(201).json({ url: blob.url, storage: "vercel-blob" });
     }
 
+    if (process.env.VERCEL) {
+      return res.status(503).json({
+        error:
+          "Image uploads need Vercel Blob. Add BLOB_READ_WRITE_TOKEN in Vercel Storage, then redeploy.",
+      });
+    }
+
     await fs.mkdir(UPLOADS_DIR, { recursive: true });
     const localPath = path.join(UPLOADS_DIR, filename);
     await fs.writeFile(localPath, req.file.buffer);

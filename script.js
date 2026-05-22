@@ -1250,10 +1250,16 @@ function updatePostImagePreview(url) {
 async function uploadPostImage() {
   const fileInput = document.getElementById("postImageUploadInput");
   const imageInput = document.getElementById("postImageInput");
+  const status = document.getElementById("postImageUploadStatus");
+  const uploadButton = document.querySelector('[data-action="upload-post-image"]');
   const file = fileInput?.files?.[0];
 
   if (!file) {
     showToast("Select an image before uploading.", "error");
+    if (status) {
+      status.textContent = "Select an image file first.";
+      status.className = "upload-status is-error";
+    }
     return;
   }
 
@@ -1261,6 +1267,12 @@ async function uploadPostImage() {
   formData.append("image", file);
 
   try {
+    if (status) {
+      status.textContent = "Uploading image...";
+      status.className = "upload-status";
+    }
+    if (uploadButton) uploadButton.disabled = true;
+
     const response = await fetch(`${API_BASE}/uploads`, {
       method: "POST",
       headers: {
@@ -1283,9 +1295,19 @@ async function uploadPostImage() {
     const payload = await response.json();
     imageInput.value = payload.url;
     updatePostImagePreview(payload.url);
+    if (status) {
+      status.textContent = `Uploaded to ${payload.storage || "storage"}.`;
+      status.className = "upload-status is-success";
+    }
     showToast("Image uploaded and attached.");
   } catch (error) {
+    if (status) {
+      status.textContent = error.message || "Unable to upload image.";
+      status.className = "upload-status is-error";
+    }
     showToast(error.message || "Unable to upload image.", "error");
+  } finally {
+    if (uploadButton) uploadButton.disabled = false;
   }
 }
 
