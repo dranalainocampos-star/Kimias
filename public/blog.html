@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Blog | Kimia's Kravings</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,600;0,800;1,800&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body class="page-blog">
+    <canvas id="paint-canvas"></canvas>
+    <div id="cursor-dot"></div>
+    <div class="mobile-nav" id="mobileNav">
+      <a href="index.html">Home</a><a href="about.html">About Kimia</a>
+      <a href="blog.html">Blog</a><a href="consulting.html">Consulting</a>
+      <a href="contact.html">Contact</a>
+    </div>
+    <header class="header" id="header">
+      <div class="container nav-container">
+        <a href="index.html" class="logo">
+          <img
+            src="UNIT 90K (32).png"
+            alt="Kimia's Kravings Logo"
+            class="logo-icon"
+          />
+          Kimia's Kravings<span>.</span>
+        </a>
+
+        <nav class="desktop-nav items-center">
+          <a href="index.html" class="nav-link">Home</a>
+          <a href="about.html" class="nav-link">About Kimia</a>
+          <a href="blog.html" class="nav-link">Blog</a>
+          <a href="consulting.html" class="nav-link">Consulting and Services</a>
+          <a
+            href="contact.html"
+            class="btn-primary u-blog-1"
+          >
+            <span>Work With Kimia</span>
+          </a>
+        </nav>
+
+        <button class="mobile-menu-btn" id="menuBtn" aria-label="Toggle Menu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+    </header>
+    <!-- BLOG HERO -->
+    <section class="blog-hero grid-surface">
+      <div class="container">
+        <div class="fade-up">
+          <div class="diabla-eyebrow u-blog-2">
+            The Journal
+          </div>
+          <h1
+            class="tracking-stark u-blog-3 gsap-heading"
+          >
+            Latest<br /><span class="u-blog-4">Kravings.</span>
+          </h1>
+          <p
+            class="u-blog-5"
+          >
+            Food reviews, travel diaries, lifestyle essays, and everything in
+            between. Unfiltered. Always first-hand.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- FILTER BAR -->
+    <div class="filter-bar">
+      <div class="filter-inner">
+        <div class="search-wrap">
+          <svg
+            width="16"
+            height="16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+          >
+            <circle cx="7" cy="7" r="5" />
+            <path d="m11 11 3 3" />
+          </svg>
+          <input
+            class="search-input"
+            id="searchInput"
+            type="text"
+            placeholder="Search posts…"
+          />
+        </div>
+        <div class="cat-tabs">
+          <button class="cat-tab active" data-cat="all">All</button>
+          <button class="cat-tab" data-cat="food">Food</button>
+          <button class="cat-tab" data-cat="travel">Travel</button>
+          <button class="cat-tab" data-cat="lifestyle">Lifestyle</button>
+          <button class="cat-tab" data-cat="drinks">Drinks</button>
+          <button class="cat-tab" data-cat="culture">Culture</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- POSTS -->
+    <section class="posts-section">
+      <div class="container">
+        <div
+          class="posts-grid"
+          id="postsGrid"
+          data-blog-grid
+          data-blog-variant="archive"
+          data-blog-batch="6"
+          data-blog-initial="6"
+        ></div>
+
+        <div class="load-more-wrap">
+          <button class="btn-primary load-more-btn" type="button" id="loadMorePosts">
+            <span>Load More</span>
+          </button>
+        </div>
+
+        <!-- No results message -->
+        <div
+          id="noResults"
+          class="u-blog-24"
+        >
+          <div
+            class="tracking-stark u-blog-25"
+          >
+            No Posts Found.
+          </div>
+          <p
+            class="u-blog-26"
+          >
+            Try a different keyword or category.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- NEWSLETTER -->
+    <section class="newsletter-section">
+      <div class="container">
+        <div class="nl-inner fade-up">
+          <div>
+            <div
+              class="diabla-eyebrow u-blog-27"
+            >
+              Stay in the loop
+            </div>
+            <h2 class="nl-title gsap-heading">Never miss a<br /><span>Kraving.</span></h2>
+            <p
+              class="u-blog-28"
+            >
+              Weekly drops — restaurant reviews, travel guides, and everything
+              Kimia is obsessing over right now.
+            </p>
+          </div>
+          <div>
+            <div class="nl-form">
+              <input class="nl-input" type="email" placeholder="Your Email" />
+              <button class="nl-btn">Subscribe</button>
+            </div>
+            <p
+              class="u-blog-29"
+            >
+              No spam. Unsubscribe anytime.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-grid">
+          <div>
+            <div class="footer-logo">Kimia's Kravings<span>.</span></div>
+            <p
+              class="u-blog-30"
+            >
+              Exploring the convergence of taste, locations, and structural
+              aesthetics.
+            </p>
+          </div>
+          <div class="footer-links-group">
+            <h4>Navigation</h4>
+            <div class="footer-links">
+              <a href="index.html">Home</a><a href="about.html">About</a>
+              <a href="blog.html">Blog</a
+              ><a href="consulting.html">Consulting</a>
+            </div>
+          </div>
+          <div class="footer-links-group">
+            <h4>Social</h4>
+            <div class="footer-links">
+              <a href="#">Instagram</a><a href="#">Pinterest</a>
+              <a href="#">YouTube</a><a href="#">LinkedIn</a>
+            </div>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <div>&copy; 2026 Kimia's Kravings.</div>
+          <div>All Rights Reserved.</div>
+        </div>
+      </div>
+    </footer>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://unpkg.com/split-type"></script>
+    <script src="script.js"></script>
+  </body>
+</html>

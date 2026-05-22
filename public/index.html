@@ -1,0 +1,1032 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kimia's Kravings | Diabla Experience</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,600;0,800;1,800&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body class="page-index">
+    <canvas id="paint-canvas"></canvas>
+    <div id="cursor-dot"></div>
+
+    <div class="mobile-nav" id="mobileNav">
+      <a href="index.html" class="mobile-nav-link">Home</a>
+      <a href="about.html" class="mobile-nav-link">About Kimia</a>
+      <a href="blog.html" class="mobile-nav-link">Blog</a>
+      <a href="consulting.html" class="mobile-nav-link"
+        >Consulting and Services</a
+      >
+      <a href="contact.html" class="mobile-nav-link">Contact Kimia</a>
+    </div>
+
+    <header class="header" id="header">
+      <div class="container nav-container">
+        <a href="index.html" class="logo">
+          <img
+            src="UNIT 90K (32).png"
+            alt="Kimia's Kravings Logo"
+            class="logo-icon"
+          />
+          Kimia's Kravings<span>.</span>
+        </a>
+
+        <nav class="desktop-nav items-center">
+          <a href="index.html" class="nav-link">Home</a>
+          <a href="about.html" class="nav-link">About Kimia</a>
+          <a href="blog.html" class="nav-link">Blog</a>
+          <a href="consulting.html" class="nav-link">Consulting and Services</a>
+          <a href="contact.html" class="btn-primary nav-cta-compact">
+            <span>Work With Kimia</span>
+          </a>
+        </nav>
+
+        <button class="mobile-menu-btn" id="menuBtn" aria-label="Toggle Menu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+    </header>
+
+    <section class="hero-viewport overflow-hidden" id="home">
+      <div class="hero-orb hero-orb-1"></div>
+      <div class="hero-orb hero-orb-2"></div>
+      <div class="hero-orb hero-orb-3"></div>
+
+      <div class="hero-split-text fade-up grid-surface">
+        <div class="hero-badge-eyebrow">
+          <span class="hero-badge-dot"></span>
+          <span class="diabla-eyebrow hero-kicker-text"
+            >FOOD &nbsp;✦&nbsp; TRAVEL &nbsp;✦&nbsp; LIFE &nbsp;✦&nbsp;
+            BRAND</span
+          >
+        </div>
+        <h1
+          class="hero-title tracking-stark leading-tight hero-title-primary"
+          id="heroTitle"
+        >
+          Your ultimate<br />go-to Guide for<br />where to Eat,<br />Drink &amp;
+          BE MERRY
+        </h1>
+        <p class="hero-subtext hero-subtext-muted">
+          A San Francisco-based lifestyle brand exploring the intersection of
+          food, travel, and modern living. Join 76K+ followers on a journey
+          through restaurant reviews and editorial content.
+        </p>
+        <div class="flex items-center gap-4 hero-action-row">
+          <a href="#blog" class="btn-primary">
+            <span>Work with Kimia</span>
+            <svg class="icon"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+          </a>
+          <a href="about.html" class="btn-outline">
+            <span>About Kimia</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="hero-split-image overflow-hidden fade-up delay-100">
+        <img
+          src="UNIT 90K (28).png"
+          alt="Editorial layout graphic"
+          class="w-full h-full object-cover"
+        />
+        <div class="hero-badge">
+          <div class="hero-badge-kicker">Featured On</div>
+          <div class="hero-badge-source">
+            Forbes / abc NEWS / Social FLy / HUFFPOST / THRIVE GLOBAL / PA LIVE!
+            / MYRAGO / WTF?
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="stats-block-row">
+      <div class="container">
+        <div class="stats-grid fade-up delay-200">
+          <div class="stat-item">
+            <div
+              class="tracking-stark leading-tight stat-number"
+              data-count="76"
+              data-suffix="K+"
+            >
+              76K+
+            </div>
+            <div class="diabla-eyebrow stat-caption">Followers</div>
+          </div>
+          <div class="stat-item">
+            <div
+              class="tracking-stark leading-tight stat-number"
+              data-count="38"
+              data-suffix=""
+            >
+              38
+            </div>
+            <div class="diabla-eyebrow stat-caption">Cities</div>
+          </div>
+          <div class="stat-item">
+            <div
+              class="tracking-stark leading-tight stat-number"
+              data-count="1.2"
+              data-suffix="M"
+            >
+              1.2M
+            </div>
+            <div class="diabla-eyebrow stat-caption">Readers</div>
+          </div>
+          <div class="stat-item">
+            <div
+              class="tracking-stark leading-tight stat-number"
+              data-count="12"
+              data-suffix=""
+            >
+              12
+            </div>
+            <div class="diabla-eyebrow stat-caption">Partners</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="featured-in">
+      <div class="marquee-track">
+        <div class="featured-logos">
+          ELLA &nbsp;<span class="marquee-star">✦</span>&nbsp; NAKED OATS
+          &nbsp;<span class="marquee-star">✦</span>&nbsp; NYT TRAVEL &nbsp;<span
+            class="marquee-star"
+            >✦</span
+          >&nbsp; EATER &nbsp;<span class="marquee-star">✦</span>&nbsp; RNMG
+          &nbsp;<span class="marquee-star">✦</span>&nbsp; FORBES &nbsp;<span
+            class="marquee-star"
+            >✦</span
+          >&nbsp;
+        </div>
+        <div class="featured-logos">
+          DRINKS &nbsp;<span class="marquee-star">✦</span>&nbsp; FORBES
+          &nbsp;<span class="marquee-star">✦</span>&nbsp; WTF! &nbsp;<span
+            class="marquee-star"
+            >✦</span
+          >&nbsp; ABC NEWS&nbsp;<span class="marquee-star">✦</span>&nbsp; SOCIAL
+          FLY &nbsp;<span class="marquee-star">✦</span>&nbsp; FORBES &nbsp;<span
+            class="marquee-star"
+            >✦</span
+          >&nbsp;
+        </div>
+        <div class="featured-logos">
+          DRINKS &nbsp;<span class="marquee-star">✦</span>&nbsp; FORBES
+          &nbsp;<span class="marquee-star">✦</span>&nbsp; WTF! &nbsp;<span
+            class="marquee-star"
+            >✦</span
+          >&nbsp; ABC NEWS&nbsp;<span class="marquee-star">✦</span>&nbsp; THRIVE
+          GLOBAL &nbsp;<span class="marquee-star">✦</span>&nbsp; PA LIVE!
+          &nbsp;<span class="marquee-star">✦</span>&nbsp;
+        </div>
+      </div>
+    </div>
+
+    <section class="about-section grid-surface" id="about">
+      <div class="about-split-grid">
+        <div class="about-split-image overflow-hidden fade-up">
+          <img
+            src="UNIT 90K (34).png"
+            alt="Kimia Portrait"
+            class="w-full h-full object-cover"
+          />
+        </div>
+
+        <div class="about-split-text fade-up delay-100">
+          <div class="diabla-eyebrow section-eyebrow">About Kimia</div>
+          <h2 class="about-quote tracking-stark leading-tight">
+            "I believe in the art of slow living—in savoring every single
+            experience"
+          </h2>
+
+          <p class="text-muted about-copy">
+            A San Francisco-based food, travel, and lifestyle blogger and brand
+            consultant. Whether I'm hunting down the best hidden ramen spot or
+            helping brands show up authentically online, I bring the same
+            energy: genuine, curious, and always hungry for more.
+          </p>
+          <a href="about.html" class="btn-outline about-more-link">
+            <span>More About Kimia</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="featured-section grid-surface" id="blog">
+      <div class="container">
+        <div class="flex items-center justify-between featured-header">
+          <h2 class="tracking-stark section-title">Latest on the Blog</h2>
+          <a href="blog.html" class="nav-link text-red-link">View All &rarr;</a>
+        </div>
+
+        <div
+          class="featured-cards"
+          id="homeBlogGrid"
+          data-blog-grid
+          data-blog-variant="home"
+          data-blog-batch="7"
+          data-blog-initial="7"
+        ></div>
+
+        <div style="display: flex; justify-content: center; margin-top: 3rem">
+          <a href="blog.html" class="btn-primary">
+            <span>View More Articles</span>
+            <svg
+              class="icon"
+              viewBox="0 0 24 24"
+              width="24"
+              height="24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+          </a>
+        </div>
+      </div>
+    </section>
+    <section class="social-feed-section grid-surface" id="social-feed">
+      <div class="container">
+        <div class="flex items-center justify-between social-header">
+          <div>
+            <div class="diabla-eyebrow section-eyebrow-tight">
+              Trending Visuals
+            </div>
+            <h2 class="tracking-stark section-title">
+              As Seen On IG Reels &amp; TikTok
+            </h2>
+          </div>
+          <a
+            href="https://instagram.com"
+            target="_blank"
+            class="nav-link text-red-link"
+            >@kimias_kravings &rarr;</a
+          >
+        </div>
+
+        <div class="video-grid">
+          <div class="social-embed-card">
+            <blockquote
+              class="instagram-media"
+              data-instgrm-captioned
+              data-instgrm-permalink="https://www.instagram.com/reel/DYFxqc7S66Q/?utm_source=ig_embed&amp;utm_campaign=loading"
+              data-instgrm-version="14"
+              style="
+                background: #fff;
+                border: 0;
+                border-radius: 3px;
+                box-shadow:
+                  0 0 1px 0 rgba(0, 0, 0, 0.5),
+                  0 1px 10px 0 rgba(0, 0, 0, 0.15);
+                margin: 1px;
+                max-width: 540px;
+                min-width: 326px;
+                padding: 0;
+                width: 99.375%;
+                width: -webkit-calc(100% - 2px);
+                width: calc(100% - 2px);
+              "
+            >
+              <div style="padding: 16px">
+                <a
+                  href="https://www.instagram.com/reel/DYFxqc7S66Q/?utm_source=ig_embed&amp;utm_campaign=loading"
+                  style="
+                    background: #ffffff;
+                    line-height: 0;
+                    padding: 0 0;
+                    text-align: center;
+                    text-decoration: none;
+                    width: 100%;
+                  "
+                  target="_blank"
+                >
+                  <div
+                    style="
+                      display: flex;
+                      flex-direction: row;
+                      align-items: center;
+                    "
+                  >
+                    <div
+                      style="
+                        background-color: #f4f4f4;
+                        border-radius: 50%;
+                        flex-grow: 0;
+                        height: 40px;
+                        margin-right: 14px;
+                        width: 40px;
+                      "
+                    ></div>
+                    <div
+                      style="
+                        display: flex;
+                        flex-direction: column;
+                        flex-grow: 1;
+                        justify-content: center;
+                      "
+                    >
+                      <div
+                        style="
+                          background-color: #f4f4f4;
+                          border-radius: 4px;
+                          flex-grow: 0;
+                          height: 14px;
+                          margin-bottom: 6px;
+                          width: 100px;
+                        "
+                      ></div>
+                      <div
+                        style="
+                          background-color: #f4f4f4;
+                          border-radius: 4px;
+                          flex-grow: 0;
+                          height: 14px;
+                          width: 60px;
+                        "
+                      ></div>
+                    </div>
+                  </div>
+                  <div style="padding: 19% 0"></div>
+                  <div
+                    style="
+                      display: block;
+                      height: 50px;
+                      margin: 0 auto 12px;
+                      width: 50px;
+                    "
+                  >
+                    <svg
+                      width="50px"
+                      height="50px"
+                      viewBox="0 0 60 60"
+                      version="1.1"
+                      xmlns="https://www.w3.org/2000/svg"
+                      xmlns:xlink="https://www.w3.org/1999/xlink"
+                    >
+                      <g
+                        stroke="none"
+                        stroke-width="1"
+                        fill="none"
+                        fill-rule="evenodd"
+                      >
+                        <g
+                          transform="translate(-511.000000, -20.000000)"
+                          fill="#000000"
+                        >
+                          <g>
+                            <path
+                              d="M556.869,30.41 C554.814,30.41 553.148,32.076 553.148,34.131 C553.148,36.186 554.814,37.852 556.869,37.852 C558.924,37.852 560.59,36.186 560.59,34.131 C560.59,32.076 558.924,30.41 556.869,30.41 M541,60.657 C535.114,60.657 530.342,55.887 530.342,50 C530.342,44.114 535.114,39.342 541,39.342 C546.887,39.342 551.658,44.114 551.658,50 C551.658,55.887 546.887,60.657 541,60.657 M541,33.886 C532.1,33.886 524.886,41.1 524.886,50 C524.886,58.899 532.1,66.113 541,66.113 C549.9,66.113 557.115,58.899 557.115,50 C557.115,41.1 549.9,33.886 541,33.886 M565.378,62.101 C565.244,65.022 564.756,66.606 564.346,67.663 C563.803,69.06 563.154,70.057 562.106,71.106 C561.058,72.155 560.06,72.803 558.662,73.347 C557.607,73.757 556.021,74.244 553.102,74.378 C549.944,74.521 548.997,74.552 541,74.552 C533.003,74.552 532.056,74.521 528.898,74.378 C525.979,74.244 524.393,73.757 523.338,73.347 C521.94,72.803 520.942,72.155 519.894,71.106 C518.846,70.057 518.197,69.06 517.654,67.663 C517.244,66.606 516.755,65.022 516.623,62.101 C516.479,58.943 516.448,57.996 516.448,50 C516.448,42.003 516.479,41.056 516.623,37.899 C516.755,34.978 517.244,33.391 517.654,32.338 C518.197,30.938 518.846,29.942 519.894,28.894 C520.942,27.846 521.94,27.196 523.338,26.654 C524.393,26.244 525.979,25.756 528.898,25.623 C532.057,25.479 533.004,25.448 541,25.448 C548.997,25.448 549.943,25.479 553.102,25.623 C556.021,25.756 557.607,26.244 558.662,26.654 C560.06,27.196 561.058,27.846 562.106,28.894 C563.154,29.942 563.803,30.938 564.346,32.338 C564.756,33.391 565.244,34.978 565.378,37.899 C565.522,41.056 565.552,42.003 565.552,50 C565.552,57.996 565.522,58.943 565.378,62.101 M570.82,37.631 C570.674,34.438 570.167,32.258 569.425,30.349 C568.659,28.377 567.633,26.702 565.965,25.035 C564.297,23.368 562.623,22.342 560.652,21.575 C558.743,20.834 556.562,20.326 553.369,20.18 C550.169,20.033 549.148,20 541,20 C532.853,20 531.831,20.033 528.631,20.18 C525.438,20.326 523.257,20.834 521.349,21.575 C519.376,22.342 517.703,23.368 516.035,25.035 C514.368,26.702 513.342,28.377 512.574,30.349 C511.834,32.258 511.326,34.438 511.181,37.631 C511.035,40.831 511,41.851 511,50 C511,58.147 511.035,59.17 511.181,62.369 C511.326,65.562 511.834,67.743 512.574,69.651 C513.342,71.625 514.368,73.296 516.035,74.965 C517.703,76.634 519.376,77.658 521.349,78.425 C523.257,79.167 525.438,79.673 528.631,79.82 C531.831,79.965 532.853,80.001 541,80.001 C549.148,80.001 550.169,79.965 553.369,79.82 C556.562,79.673 558.743,79.167 560.652,78.425 C562.623,77.658 564.297,76.634 565.965,74.965 C567.633,73.296 568.659,71.625 569.425,69.651 C570.167,67.743 570.674,65.562 570.82,62.369 C570.966,59.17 571,58.147 571,50 C571,41.851 570.966,40.831 570.82,37.631"
+                            ></path>
+                          </g>
+                        </g>
+                      </g>
+                    </svg>
+                  </div>
+                  <div style="padding-top: 8px">
+                    <div
+                      style="
+                        color: #3897f0;
+                        font-family: Arial, sans-serif;
+                        font-size: 14px;
+                        font-style: normal;
+                        font-weight: 550;
+                        line-height: 18px;
+                      "
+                    >
+                      View this post on Instagram
+                    </div>
+                  </div>
+                  <div style="padding: 12.5% 0"></div>
+                  <div
+                    style="
+                      display: flex;
+                      flex-direction: row;
+                      margin-bottom: 14px;
+                      align-items: center;
+                    "
+                  >
+                    <div>
+                      <div
+                        style="
+                          background-color: #f4f4f4;
+                          border-radius: 50%;
+                          height: 12.5px;
+                          width: 12.5px;
+                          transform: translateX(0px) translateY(7px);
+                        "
+                      ></div>
+                      <div
+                        style="
+                          background-color: #f4f4f4;
+                          height: 12.5px;
+                          transform: rotate(-45deg) translateX(3px)
+                            translateY(1px);
+                          width: 12.5px;
+                          flex-grow: 0;
+                          margin-right: 14px;
+                          margin-left: 2px;
+                        "
+                      ></div>
+                      <div
+                        style="
+                          background-color: #f4f4f4;
+                          border-radius: 50%;
+                          height: 12.5px;
+                          width: 12.5px;
+                          transform: translateX(9px) translateY(-18px);
+                        "
+                      ></div>
+                    </div>
+                    <div style="margin-left: 8px">
+                      <div
+                        style="
+                          background-color: #f4f4f4;
+                          border-radius: 50%;
+                          flex-grow: 0;
+                          height: 20px;
+                          width: 20px;
+                        "
+                      ></div>
+                      <div
+                        style="
+                          width: 0;
+                          height: 0;
+                          border-top: 2px solid transparent;
+                          border-left: 6px solid #f4f4f4;
+                          border-bottom: 2px solid transparent;
+                          transform: translateX(16px) translateY(-4px)
+                            rotate(30deg);
+                        "
+                      ></div>
+                    </div>
+                    <div style="margin-left: auto">
+                      <div
+                        style="
+                          width: 0px;
+                          border-top: 8px solid #f4f4f4;
+                          border-right: 8px solid transparent;
+                          transform: translateY(16px);
+                        "
+                      ></div>
+                      <div
+                        style="
+                          background-color: #f4f4f4;
+                          flex-grow: 0;
+                          height: 12px;
+                          width: 16px;
+                          transform: translateY(-4px);
+                        "
+                      ></div>
+                      <div
+                        style="
+                          width: 0;
+                          height: 0;
+                          border-top: 8px solid #f4f4f4;
+                          border-left: 8px solid transparent;
+                          transform: translateY(-4px) translateX(8px);
+                        "
+                      ></div>
+                    </div>
+                  </div>
+                  <div
+                    style="
+                      display: flex;
+                      flex-direction: column;
+                      flex-grow: 1;
+                      justify-content: center;
+                      margin-bottom: 24px;
+                    "
+                  >
+                    <div
+                      style="
+                        background-color: #f4f4f4;
+                        border-radius: 4px;
+                        flex-grow: 0;
+                        height: 14px;
+                        margin-bottom: 6px;
+                        width: 224px;
+                      "
+                    ></div>
+                    <div
+                      style="
+                        background-color: #f4f4f4;
+                        border-radius: 4px;
+                        flex-grow: 0;
+                        height: 14px;
+                        width: 144px;
+                      "
+                    ></div></div
+                ></a>
+                <p
+                  style="
+                    color: #c9c8cd;
+                    font-family: Arial, sans-serif;
+                    font-size: 14px;
+                    line-height: 17px;
+                    margin-bottom: 0;
+                    margin-top: 8px;
+                    overflow: hidden;
+                    padding: 8px 0 7px;
+                    text-align: center;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                  "
+                >
+                  <a
+                    href="https://www.instagram.com/reel/DYFxqc7S66Q/?utm_source=ig_embed&amp;utm_campaign=loading"
+                    style="
+                      color: #c9c8cd;
+                      font-family: Arial, sans-serif;
+                      font-size: 14px;
+                      font-style: normal;
+                      font-weight: normal;
+                      line-height: 17px;
+                      text-decoration: none;
+                    "
+                    target="_blank"
+                    >A post shared by Kimia Kalbasi | SF lifestyle fun &amp;
+                    puns (@kimiaskravings)</a
+                  >
+                </p>
+              </div>
+            </blockquote>
+            <script async src="//www.instagram.com/embed.js"></script>
+          </div>
+
+          <div class="social-embed-card">
+            <blockquote
+              class="tiktok-embed"
+              cite="https://www.tiktok.com/@kimiaskravings/video/7576940723438701879"
+              data-video-id="7576940723438701879"
+              style="max-width: 605px; min-width: 325px"
+            >
+              <section>
+                <a
+                  target="_blank"
+                  title="@kimiaskravings"
+                  href="https://www.tiktok.com/@kimiaskravings?refer=embed"
+                  >@kimiaskravings</a
+                >
+                I came, I soy, I conquered 🍣🥢
+                <a
+                  title="sushilover"
+                  target="_blank"
+                  href="https://www.tiktok.com/tag/sushilover?refer=embed"
+                  >#sushilover</a
+                >
+                <a
+                  title="sushiroll"
+                  target="_blank"
+                  href="https://www.tiktok.com/tag/sushiroll?refer=embed"
+                  >#sushiroll</a
+                >
+                <a
+                  title="paloalto"
+                  target="_blank"
+                  href="https://www.tiktok.com/tag/paloalto?refer=embed"
+                  >#paloalto</a
+                >
+                <a
+                  title="sfbayarea"
+                  target="_blank"
+                  href="https://www.tiktok.com/tag/sfbayarea?refer=embed"
+                  >#sfbayarea</a
+                >
+                <a
+                  title="sushitime"
+                  target="_blank"
+                  href="https://www.tiktok.com/tag/sushitime?refer=embed"
+                  >#sushitime</a
+                >
+                <a
+                  target="_blank"
+                  title="♬ original sound - Kimia’s Kravings"
+                  href="https://www.tiktok.com/music/original-sound-7576940715943545655?refer=embed"
+                  >♬ original sound - Kimia’s Kravings</a
+                >
+              </section>
+            </blockquote>
+            <script async src="https://www.tiktok.com/embed.js"></script>
+          </div>
+
+          <div class="social-embed-card">
+            <blockquote
+              class="instagram-media"
+              data-instgrm-captioned
+              data-instgrm-permalink="https://www.instagram.com/reel/DU__Fo_gd1X/?utm_source=ig_embed&amp;utm_campaign=loading"
+              data-instgrm-version="14"
+              style="
+                background: #fff;
+                border: 0;
+                border-radius: 3px;
+                box-shadow:
+                  0 0 1px 0 rgba(0, 0, 0, 0.5),
+                  0 1px 10px 0 rgba(0, 0, 0, 0.15);
+                margin: 1px;
+                max-width: 540px;
+                min-width: 326px;
+                padding: 0;
+                width: 99.375%;
+                width: -webkit-calc(100% - 2px);
+                width: calc(100% - 2px);
+              "
+            >
+              <div style="padding: 16px">
+                <a
+                  href="https://www.instagram.com/reel/DU__Fo_gd1X/?utm_source=ig_embed&amp;utm_campaign=loading"
+                  style="
+                    background: #ffffff;
+                    line-height: 0;
+                    padding: 0 0;
+                    text-align: center;
+                    text-decoration: none;
+                    width: 100%;
+                  "
+                  target="_blank"
+                >
+                  <div
+                    style="
+                      display: flex;
+                      flex-direction: row;
+                      align-items: center;
+                    "
+                  >
+                    <div
+                      style="
+                        background-color: #f4f4f4;
+                        border-radius: 50%;
+                        flex-grow: 0;
+                        height: 40px;
+                        margin-right: 14px;
+                        width: 40px;
+                      "
+                    ></div>
+                    <div
+                      style="
+                        display: flex;
+                        flex-direction: column;
+                        flex-grow: 1;
+                        justify-content: center;
+                      "
+                    >
+                      <div
+                        style="
+                          background-color: #f4f4f4;
+                          border-radius: 4px;
+                          flex-grow: 0;
+                          height: 14px;
+                          margin-bottom: 6px;
+                          width: 100px;
+                        "
+                      ></div>
+                      <div
+                        style="
+                          background-color: #f4f4f4;
+                          border-radius: 4px;
+                          flex-grow: 0;
+                          height: 14px;
+                          width: 60px;
+                        "
+                      ></div>
+                    </div>
+                  </div>
+                  <div style="padding: 19% 0"></div>
+                  <div
+                    style="
+                      display: block;
+                      height: 50px;
+                      margin: 0 auto 12px;
+                      width: 50px;
+                    "
+                  >
+                    <svg
+                      width="50px"
+                      height="50px"
+                      viewBox="0 0 60 60"
+                      version="1.1"
+                      xmlns="https://www.w3.org/2000/svg"
+                      xmlns:xlink="https://www.w3.org/1999/xlink"
+                    >
+                      <g
+                        stroke="none"
+                        stroke-width="1"
+                        fill="none"
+                        fill-rule="evenodd"
+                      >
+                        <g
+                          transform="translate(-511.000000, -20.000000)"
+                          fill="#000000"
+                        >
+                          <g>
+                            <path
+                              d="M556.869,30.41 C554.814,30.41 553.148,32.076 553.148,34.131 C553.148,36.186 554.814,37.852 556.869,37.852 C558.924,37.852 560.59,36.186 560.59,34.131 C560.59,32.076 558.924,30.41 556.869,30.41 M541,60.657 C535.114,60.657 530.342,55.887 530.342,50 C530.342,44.114 535.114,39.342 541,39.342 C546.887,39.342 551.658,44.114 551.658,50 C551.658,55.887 546.887,60.657 541,60.657 M541,33.886 C532.1,33.886 524.886,41.1 524.886,50 C524.886,58.899 532.1,66.113 541,66.113 C549.9,66.113 557.115,58.899 557.115,50 C557.115,41.1 549.9,33.886 541,33.886 M565.378,62.101 C565.244,65.022 564.756,66.606 564.346,67.663 C563.803,69.06 563.154,70.057 562.106,71.106 C561.058,72.155 560.06,72.803 558.662,73.347 C557.607,73.757 556.021,74.244 553.102,74.378 C549.944,74.521 548.997,74.552 541,74.552 C533.003,74.552 532.056,74.521 528.898,74.378 C525.979,74.244 524.393,73.757 523.338,73.347 C521.94,72.803 520.942,72.155 519.894,71.106 C518.846,70.057 518.197,69.06 517.654,67.663 C517.244,66.606 516.755,65.022 516.623,62.101 C516.479,58.943 516.448,57.996 516.448,50 C516.448,42.003 516.479,41.056 516.623,37.899 C516.755,34.978 517.244,33.391 517.654,32.338 C518.197,30.938 518.846,29.942 519.894,28.894 C520.942,27.846 521.94,27.196 523.338,26.654 C524.393,26.244 525.979,25.756 528.898,25.623 C532.057,25.479 533.004,25.448 541,25.448 C548.997,25.448 549.943,25.479 553.102,25.623 C556.021,25.756 557.607,26.244 558.662,26.654 C560.06,27.196 561.058,27.846 562.106,28.894 C563.154,29.942 563.803,30.938 564.346,32.338 C564.756,33.391 565.244,34.978 565.378,37.899 C565.522,41.056 565.552,42.003 565.552,50 C565.552,57.996 565.522,58.943 565.378,62.101 M570.82,37.631 C570.674,34.438 570.167,32.258 569.425,30.349 C568.659,28.377 567.633,26.702 565.965,25.035 C564.297,23.368 562.623,22.342 560.652,21.575 C558.743,20.834 556.562,20.326 553.369,20.18 C550.169,20.033 549.148,20 541,20 C532.853,20 531.831,20.033 528.631,20.18 C525.438,20.326 523.257,20.834 521.349,21.575 C519.376,22.342 517.703,23.368 516.035,25.035 C514.368,26.702 513.342,28.377 512.574,30.349 C511.834,32.258 511.326,34.438 511.181,37.631 C511.035,40.831 511,41.851 511,50 C511,58.147 511.035,59.17 511.181,62.369 C511.326,65.562 511.834,67.743 512.574,69.651 C513.342,71.625 514.368,73.296 516.035,74.965 C517.703,76.634 519.376,77.658 521.349,78.425 C523.257,79.167 525.438,79.673 528.631,79.82 C531.831,79.965 532.853,80.001 541,80.001 C549.148,80.001 550.169,79.965 553.369,79.82 C556.562,79.673 558.743,79.167 560.652,78.425 C562.623,77.658 564.297,76.634 565.965,74.965 C567.633,73.296 568.659,71.625 569.425,69.651 C570.167,67.743 570.674,65.562 570.82,62.369 C570.966,59.17 571,58.147 571,50 C571,41.851 570.966,40.831 570.82,37.631"
+                            ></path>
+                          </g>
+                        </g>
+                      </g>
+                    </svg>
+                  </div>
+                  <div style="padding-top: 8px">
+                    <div
+                      style="
+                        color: #3897f0;
+                        font-family: Arial, sans-serif;
+                        font-size: 14px;
+                        font-style: normal;
+                        font-weight: 550;
+                        line-height: 18px;
+                      "
+                    >
+                      View this post on Instagram
+                    </div>
+                  </div>
+                  <div style="padding: 12.5% 0"></div>
+                  <div
+                    style="
+                      display: flex;
+                      flex-direction: row;
+                      margin-bottom: 14px;
+                      align-items: center;
+                    "
+                  >
+                    <div>
+                      <div
+                        style="
+                          background-color: #f4f4f4;
+                          border-radius: 50%;
+                          height: 12.5px;
+                          width: 12.5px;
+                          transform: translateX(0px) translateY(7px);
+                        "
+                      ></div>
+                      <div
+                        style="
+                          background-color: #f4f4f4;
+                          height: 12.5px;
+                          transform: rotate(-45deg) translateX(3px)
+                            translateY(1px);
+                          width: 12.5px;
+                          flex-grow: 0;
+                          margin-right: 14px;
+                          margin-left: 2px;
+                        "
+                      ></div>
+                      <div
+                        style="
+                          background-color: #f4f4f4;
+                          border-radius: 50%;
+                          height: 12.5px;
+                          width: 12.5px;
+                          transform: translateX(9px) translateY(-18px);
+                        "
+                      ></div>
+                    </div>
+                    <div style="margin-left: 8px">
+                      <div
+                        style="
+                          background-color: #f4f4f4;
+                          border-radius: 50%;
+                          flex-grow: 0;
+                          height: 20px;
+                          width: 20px;
+                        "
+                      ></div>
+                      <div
+                        style="
+                          width: 0;
+                          height: 0;
+                          border-top: 2px solid transparent;
+                          border-left: 6px solid #f4f4f4;
+                          border-bottom: 2px solid transparent;
+                          transform: translateX(16px) translateY(-4px)
+                            rotate(30deg);
+                        "
+                      ></div>
+                    </div>
+                    <div style="margin-left: auto">
+                      <div
+                        style="
+                          width: 0px;
+                          border-top: 8px solid #f4f4f4;
+                          border-right: 8px solid transparent;
+                          transform: translateY(16px);
+                        "
+                      ></div>
+                      <div
+                        style="
+                          background-color: #f4f4f4;
+                          flex-grow: 0;
+                          height: 12px;
+                          width: 16px;
+                          transform: translateY(-4px);
+                        "
+                      ></div>
+                      <div
+                        style="
+                          width: 0;
+                          height: 0;
+                          border-top: 8px solid #f4f4f4;
+                          border-left: 8px solid transparent;
+                          transform: translateY(-4px) translateX(8px);
+                        "
+                      ></div>
+                    </div>
+                  </div>
+                  <div
+                    style="
+                      display: flex;
+                      flex-direction: column;
+                      flex-grow: 1;
+                      justify-content: center;
+                      margin-bottom: 24px;
+                    "
+                  >
+                    <div
+                      style="
+                        background-color: #f4f4f4;
+                        border-radius: 4px;
+                        flex-grow: 0;
+                        height: 14px;
+                        margin-bottom: 6px;
+                        width: 224px;
+                      "
+                    ></div>
+                    <div
+                      style="
+                        background-color: #f4f4f4;
+                        border-radius: 4px;
+                        flex-grow: 0;
+                        height: 14px;
+                        width: 144px;
+                      "
+                    ></div></div
+                ></a>
+                <p
+                  style="
+                    color: #c9c8cd;
+                    font-family: Arial, sans-serif;
+                    font-size: 14px;
+                    line-height: 17px;
+                    margin-bottom: 0;
+                    margin-top: 8px;
+                    overflow: hidden;
+                    padding: 8px 0 7px;
+                    text-align: center;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                  "
+                >
+                  <a
+                    href="https://www.instagram.com/reel/DU__Fo_gd1X/?utm_source=ig_embed&amp;utm_campaign=loading"
+                    style="
+                      color: #c9c8cd;
+                      font-family: Arial, sans-serif;
+                      font-size: 14px;
+                      font-style: normal;
+                      font-weight: normal;
+                      line-height: 17px;
+                      text-decoration: none;
+                    "
+                    target="_blank"
+                    >A post shared by Creators Club | San Francisco
+                    (@creatorsclubsf)</a
+                  >
+                </p>
+              </div>
+            </blockquote>
+            <script async src="//www.instagram.com/embed.js"></script>
+          </div>
+
+          <div class="social-embed-card">
+            <blockquote
+              class="tiktok-embed"
+              cite="https://www.tiktok.com/@kimiaskravings/video/7583637338715131149"
+              data-video-id="7583637338715131149"
+              style="max-width: 605px; min-width: 325px"
+            >
+              <section>
+                <a
+                  target="_blank"
+                  title="@kimiaskravings"
+                  href="https://www.tiktok.com/@kimiaskravings?refer=embed"
+                  >@kimiaskravings</a
+                >
+                Explore like a tourist, live like local 🌁✨📍🫶🏻
+                <a
+                  title="sanfrancisco"
+                  target="_blank"
+                  href="https://www.tiktok.com/tag/sanfrancisco?refer=embed"
+                  >#sanfrancisco</a
+                >
+                <a
+                  title="fourseasons"
+                  target="_blank"
+                  href="https://www.tiktok.com/tag/fourseasons?refer=embed"
+                  >#fourseasons</a
+                >
+                <a
+                  title="bayarea"
+                  target="_blank"
+                  href="https://www.tiktok.com/tag/bayarea?refer=embed"
+                  >#bayarea</a
+                >
+                <a
+                  title="sf"
+                  target="_blank"
+                  href="https://www.tiktok.com/tag/sf?refer=embed"
+                  >#sf</a
+                >
+                <a
+                  title="roomservice"
+                  target="_blank"
+                  href="https://www.tiktok.com/tag/roomservice?refer=embed"
+                  >#roomservice</a
+                >
+                <a
+                  target="_blank"
+                  title="♬ original sound - Kimia’s Kravings"
+                  href="https://www.tiktok.com/music/original-sound-7583637552612068110?refer=embed"
+                  >♬ original sound - Kimia’s Kravings</a
+                >
+              </section>
+            </blockquote>
+            <script async src="https://www.tiktok.com/embed.js"></script>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="book-section" id="book">
+      <div class="container">
+        <div class="book-inner fade-up">
+          <div>
+            <div class="diabla-eyebrow book-eyebrow">Book a Discovery Call</div>
+            <h2 class="book-title">Let's talk about<br />your brand.</h2>
+            <p class="book-sub book-sub-offset">
+              30-minute discovery call. No pitch. Just an honest conversation
+              about where your brand is and where it could go.
+            </p>
+          </div>
+          <div class="book-actions">
+            <a href="contact.html" class="btn-white"
+              ><span>Book a Free Call</span
+              ><svg class="icon"><path d="M5 12h14M12 5l7 7-7 7" /></svg
+            ></a>
+            <p class="book-note">Response within 24 hours.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-grid">
+          <div>
+            <div class="footer-logo">Kimia's Kravings<span>.</span></div>
+            <p class="footer-description">
+              Where taste, place, branding, and structural aesthetics converge
+              into refined visual experiences.
+            </p>
+          </div>
+          <div class="footer-links-group">
+            <h4>Navigation</h4>
+            <div class="footer-links">
+              <a href="index.html">Home</a><a href="about.html">About</a
+              ><a href="blog.html">Blog</a
+              ><a href="consulting.html">Consulting</a>
+            </div>
+          </div>
+          <div class="footer-links-group">
+            <h4>Social</h4>
+            <div class="footer-links">
+              <a href="#">Instagram</a><a href="#">Pinterest</a
+              ><a href="#">YouTube</a><a href="#">LinkedIn</a>
+            </div>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <div>&copy; 2026 Kimia's Kravings.</div>
+          <div>All Rights Reserved.</div>
+        </div>
+      </div>
+    </footer>
+
+    <script async src="//www.instagram.com/embed.js"></script>
+    <script async src="https://www.tiktok.com/embed.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://unpkg.com/split-type"></script>
+    <script src="script.js?v=1.0.1"></script>
+  </body>
+</html>
