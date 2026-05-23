@@ -248,6 +248,7 @@ async function loadInitialData() {
         status: post.status,
         image: post.image,
         slug: post.slug,
+        content: post.content,
         location: post.location,
         categoryColor: post.categoryColor,
       }));
@@ -574,7 +575,7 @@ function renderHomeBlogCard(post, index) {
   const delayClass = getDelayClass(index);
   const rowClass = index >= 3 ? "featured-row-offset" : "";
   return `
-    <a href="blog.html#${escapeHTML(post.slug)}" class="card fade-up ${delayClass} ${rowClass}" data-blog-id="${post.id}">
+    <a href="/blog/${escapeHTML(post.slug)}" class="card fade-up ${delayClass} ${rowClass}" data-blog-id="${post.id}">
       <div class="card-img-container">
         <span class="card-label ${getCategoryColorClass(post)}">${escapeHTML(post.category)}</span>
         <img
@@ -601,7 +602,7 @@ function renderArchiveBlogCard(post, index) {
   const delayClass = getDelayClass(index);
   const featuredClass = index === 0 ? "post-featured" : "";
   return `
-    <a href="#${escapeHTML(post.slug)}" class="post-card ${featuredClass} fade-up ${delayClass}" data-cat="${escapeHTML(post.category.toLowerCase())}" data-blog-id="${post.id}">
+    <a href="/blog/${escapeHTML(post.slug)}" class="post-card ${featuredClass} fade-up ${delayClass}" data-cat="${escapeHTML(post.category.toLowerCase())}" data-blog-id="${post.id}">
       <div class="post-card-img">
         <span class="post-cat-label ${getCategoryColorClass(post)}">${escapeHTML(post.category)}</span>
         <img
@@ -699,6 +700,234 @@ function renderBlogBatch(grid, reset = false) {
   updateBlogPaginationControls(grid, posts.length);
 
   if (typeof ScrollTrigger !== "undefined") ScrollTrigger.refresh();
+}
+
+function getSinglePostSlug() {
+  const querySlug = new URLSearchParams(window.location.search).get("slug");
+  if (querySlug) return querySlug.trim();
+
+  const parts = window.location.pathname.split("/").filter(Boolean);
+  const slug = parts.at(-1) || "";
+  return slug === "blog-post.html" ? "" : decodeURIComponent(slug);
+}
+
+function formatPostContent(content = "") {
+  const body = String(content).trim();
+  if (!body) return "<p>Full story details are coming soon.</p>";
+
+  return body
+    .split(/\n{2,}/)
+    .map((block) => block.trim())
+    .filter(Boolean)
+    .map((block) => {
+      if (block.startsWith("### ")) {
+        return `<h3>${escapeHTML(block.slice(4))}</h3>`;
+      }
+      if (block.startsWith("## ")) {
+        return `<h2>${escapeHTML(block.slice(3))}</h2>`;
+      }
+
+      const lines = block.split("\n").map((line) => line.trim());
+      if (lines.length > 1 && lines.every((line) => line.startsWith("- "))) {
+        return `<ul>${lines
+          .map((line) => `<li>${escapeHTML(line.slice(2))}</li>`)
+          .join("")}</ul>`;
+      }
+
+      return `<p>${escapeHTML(block).replace(/\n/g, "<br>")}</p>`;
+    })
+    .join("");
+}
+
+function renderPostNavItem(post, direction) {
+  const label = direction === "previous" ? "Previous Post" : "Next Post";
+  const emptyTitle = direction === "previous" ? "No newer post" : "No older post";
+  const arrow = direction === "previous" ? "&larr;" : "&rarr;";
+
+  if (!post) {
+    return `
+      <div class="post-nav-link is-disabled">
+        <span>${label}</span>
+        <strong>${emptyTitle}</strong>
+      </div>
+    `;
+  }
+
+  return `
+    <a class="post-nav-link post-nav-link-${direction}" href="/blog/${escapeHTML(post.slug)}">
+      <span>${label}</span>
+      <strong>${escapeHTML(post.title)}</strong>
+      <em>${arrow}</em>
+    </a>
+  `;
+}
+
+function renderApprovedComments(commentsList = []) {
+  const target = document.getElementById("commentsList");
+  const count = document.getElementById("commentsCount");
+  if (!target) return;
+
+  if (count) {
+    count.textContent = `${commentsList.length} ${commentsList.length === 1 ? "Comment" : "Comments"}`;
+  }
+
+  if (!commentsList.length) {
+    target.innerHTML = `
+      <div class="comment-empty-state">
+        No comments yet. Be the first to leave a reply.
+      </div>
+    `;
+    return;
+  }
+
+  target.innerHTML = commentsList
+    .map(
+      (comment) => `
+        <article class="comment-card">
+          <div class="comment-card-top">
+            <strong>${escapeHTML(comment.author)}</strong>
+            <span>${escapeHTML(comment.date || "")}</span>
+          </div>
+          <p>${escapeHTML(comment.text)}</p>
+          ${
+            comment.replies?.length
+              ? comment.replies
+                  .map(
+                    (reply) => `
+                      <div class="comment-reply">
+                        <strong>${escapeHTML(reply.author)}</strong>
+                        <p>${escapeHTML(reply.text)}</p>
+                      </div>
+                    `,
+                  )
+                  .join("")
+              : ""
+          }
+        </article>
+      `,
+    )
+    .join("");
+}
+
+function renderSinglePostPage(payload) {
+  const { post, previous, next, comments: commentsList = [] } = payload;
+  const title = document.getElementById("singlePostTitle");
+  const kicker = document.getElementById("singlePostKicker");
+  const meta = document.getElementById("singlePostMeta");
+  const image = document.getElementById("singlePostImage");
+  const content = document.getElementById("singlePostContent");
+  const nav = document.getElementById("singlePostNav");
+  const form = document.getElementById("commentForm");
+
+  document.title = `${post.title} | Kimia's Kravings`;
+  if (title) title.textContent = post.title;
+  if (kicker) kicker.textContent = post.category;
+  if (meta) {
+    meta.innerHTML = `
+      <span>${escapeHTML(post.location || post.category)}</span>
+      <span>${escapeHTML(post.date || "")}</span>
+    `;
+  }
+  if (image) {
+    image.src = post.image || BLOG_DEFAULT_IMAGE;
+    image.alt = post.title;
+  }
+  if (content) {
+    content.innerHTML = formatPostContent(post.content || post.excerpt);
+  }
+  if (nav) {
+    nav.innerHTML = `
+      ${renderPostNavItem(previous, "previous")}
+      ${renderPostNavItem(next, "next")}
+    `;
+  }
+  if (form) {
+    form.dataset.slug = post.slug;
+  }
+
+  renderApprovedComments(commentsList);
+}
+
+function renderSinglePostError(message) {
+  const page = document.querySelector("[data-post-page]");
+  if (!page) return;
+
+  page.innerHTML = `
+    <section class="single-post-hero grid-surface">
+      <div class="container">
+        <a href="/blog" class="post-back-link">&larr; Back to Blog</a>
+        <div class="diabla-eyebrow">Post Not Found</div>
+        <h1 class="single-post-title">${escapeHTML(message)}</h1>
+      </div>
+    </section>
+  `;
+  initGridSurfaces();
+}
+
+async function handleCommentSubmit(event) {
+  event.preventDefault();
+
+  const form = event.currentTarget;
+  const status = document.getElementById("commentStatus");
+  const submitButton = form.querySelector("button[type='submit']");
+  const slug = form.dataset.slug || getSinglePostSlug();
+  const author = document.getElementById("commentName").value.trim();
+  const email = document.getElementById("commentEmail").value.trim();
+  const text = document.getElementById("commentText").value.trim();
+
+  if (!author || !email || !text) {
+    if (status) {
+      status.textContent = "Please fill in your name, email, and comment.";
+      status.className = "comment-status is-error";
+    }
+    return;
+  }
+
+  try {
+    if (submitButton) submitButton.disabled = true;
+    if (status) {
+      status.textContent = "Submitting your comment...";
+      status.className = "comment-status";
+    }
+
+    await apiRequest(`/posts/${slug}/comments`, {
+      method: "POST",
+      body: JSON.stringify({ author, email, text }),
+    });
+
+    form.reset();
+    if (status) {
+      status.textContent = "Thanks. Your comment is waiting for moderation.";
+      status.className = "comment-status is-success";
+    }
+  } catch (error) {
+    if (status) {
+      status.textContent = error.message || "Unable to submit comment.";
+      status.className = "comment-status is-error";
+    }
+  } finally {
+    if (submitButton) submitButton.disabled = false;
+  }
+}
+
+async function initSinglePostPage() {
+  if (!document.querySelector("[data-post-page]")) return;
+
+  const slug = getSinglePostSlug();
+  const form = document.getElementById("commentForm");
+  if (form) form.addEventListener("submit", handleCommentSubmit);
+
+  if (!slug) {
+    renderSinglePostError("We could not find that post.");
+    return;
+  }
+
+  try {
+    const payload = await apiRequest(`/posts/${slug}`);
+    renderSinglePostPage(payload);
+  } catch (error) {
+    renderSinglePostError(error.message || "We could not find that post.");
+  }
 }
 
 function resetArchiveBlogGrid() {
@@ -907,6 +1136,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   initHeaderAndMenu();
   initFadeUp();
   initBlogPagination();
+  await initSinglePostPage();
   initCountUp();
   initGridSurfaces();
   initCardTilt();
@@ -963,6 +1193,7 @@ let posts = blogData.map((post) => ({
   id: post.id,
   title: post.title,
   excerpt: post.excerpt,
+  content: post.content || post.excerpt,
   category: post.category,
   date: post.date,
   status: post.status,
@@ -1040,9 +1271,23 @@ async function loadAdminMessages() {
   }
 }
 
+async function loadAdminComments() {
+  try {
+    const payload = await apiRequest("/admin/comments", {
+      headers: { "x-admin-token": getAdminToken() },
+    });
+    if (Array.isArray(payload.comments)) {
+      comments = payload.comments;
+    }
+  } catch (error) {
+    console.warn("Unable to load admin comments:", error.message);
+    comments = [];
+  }
+}
+
 // ── ENGINE INITIALIZATION PROCEDURES ──
 async function initializeApplicationCore() {
-  await loadAdminMessages();
+  await Promise.all([loadAdminMessages(), loadAdminComments()]);
   updateBadges();
   renderDashboardActivities();
   renderBlogPosts("all");
@@ -1201,7 +1446,7 @@ function openPostModal(editId = null) {
     document.getElementById("postTitleInput").value = p.title;
     document.getElementById("postCategoryInput").value = p.category;
     document.getElementById("postStatusSelect").value = p.status;
-    document.getElementById("postContentInput").value = p.excerpt;
+    document.getElementById("postContentInput").value = p.content || p.excerpt;
     document.getElementById("postImageInput").value = p.image || "";
     updatePostImagePreview(p.image || "");
   } else {
@@ -1322,6 +1567,7 @@ function syncBlogDataFromAdminPost(post) {
       post.categoryColor || existing?.categoryColor || getCategoryColorFromName(post.category),
     image: post.image || existing?.image || BLOG_DEFAULT_IMAGE,
     slug: post.slug || existing?.slug || slugify(post.title),
+    content: post.content || existing?.content || post.excerpt,
     excerpt: post.excerpt,
     date: post.date,
     status: post.status,
@@ -1355,6 +1601,7 @@ async function savePostData() {
       category: cat,
       status: status,
       image: image || BLOG_DEFAULT_IMAGE,
+      content: excerpt || "No description payload defined.",
       location: cat,
       categoryColor: getCategoryColorFromName(cat),
       date: id ? posts.find((post) => String(post.id) === String(id))?.date : "Just Now",
@@ -1375,6 +1622,7 @@ async function savePostData() {
       status: result.post.status,
       image: result.post.image,
       slug: result.post.slug,
+      content: result.post.content,
       location: result.post.location,
       categoryColor: result.post.categoryColor,
     };
@@ -1433,14 +1681,14 @@ function renderComments(filter = "all") {
   <div class="comment-node">
     <div class="comment-meta">
       <div>
-        <span class="comment-author">${c.author}</span> on 
-        <a href="#" class="comment-post">${c.postTitle}</a>
+        <span class="comment-author">${escapeHTML(c.author)}</span> on
+        <a href="/blog/${escapeHTML(c.postSlug)}" class="comment-post">${escapeHTML(c.postTitle)}</a>
       </div>
       <div class="comment-state">
         ${c.pending ? "⚠️ Awaiting Moderation" : "✓ Cleared"}
       </div>
     </div>
-    <div class="comment-body">"${c.text}"</div>
+    <div class="comment-body">"${escapeHTML(c.text)}"</div>
     
     <div class="inline-actions">
       ${c.pending ? `<button class="btn btn-dark btn-sm" data-action="approve-comment" data-id="${c.id}">Approve Verification</button>` : ""}
@@ -1454,7 +1702,7 @@ function renderComments(filter = "all") {
             .map(
               (r) => `
       <div class="nested-reply">
-        <strong class="reply-author">↳ ${r.author} [Admin]:</strong> ${r.text}
+        <strong class="reply-author">↳ ${escapeHTML(r.author)} [Admin]:</strong> ${escapeHTML(r.text)}
       </div>
     `,
             )
@@ -1480,12 +1728,20 @@ function filterComments(type, btn) {
   renderComments(type);
 }
 
-function approveComment(id) {
-  const c = comments.find((x) => x.id === id);
-  c.pending = false;
-  renderComments();
-  updateBadges();
-  showToast("Comment data verified and made public.");
+async function approveComment(id) {
+  try {
+    const result = await apiRequest(`/admin/comments/${id}/approve`, {
+      method: "PUT",
+      headers: { "x-admin-token": getAdminToken() },
+    });
+    const index = comments.findIndex((x) => x.id === id);
+    if (index > -1) comments[index] = result.comment;
+    renderComments();
+    updateBadges();
+    showToast("Comment data verified and made public.");
+  } catch (error) {
+    showToast(error.message || "Unable to approve comment.", "error");
+  }
 }
 
 function toggleCommentReply(id) {
@@ -1493,7 +1749,7 @@ function toggleCommentReply(id) {
   box.classList.toggle("show");
 }
 
-function postCommentReply(id) {
+async function postCommentReply(id) {
   const txt = document
     .getElementById("commentReplyText-" + id)
     .value.trim();
@@ -1501,21 +1757,36 @@ function postCommentReply(id) {
     showToast("Cannot commit null characters.", "error");
     return;
   }
-  const c = comments.find((x) => x.id === id);
-  if (!c.replies) c.replies = [];
-  c.replies.push({ author: "Kimia", text: txt });
-  c.pending = false;
-  renderComments();
-  updateBadges();
-  showToast("Reply appended to comment tree infrastructure.");
+  try {
+    const result = await apiRequest(`/admin/comments/${id}/reply`, {
+      method: "POST",
+      headers: { "x-admin-token": getAdminToken() },
+      body: JSON.stringify({ text: txt }),
+    });
+    const index = comments.findIndex((x) => x.id === id);
+    if (index > -1) comments[index] = result.comment;
+    renderComments();
+    updateBadges();
+    showToast("Reply appended to comment tree infrastructure.");
+  } catch (error) {
+    showToast(error.message || "Unable to save reply.", "error");
+  }
 }
 
-function deleteComment(id) {
+async function deleteComment(id) {
   if (!confirm("Purge data block?")) return;
-  comments = comments.filter((c) => c.id !== id);
-  renderComments();
-  updateBadges();
-  showToast("Node stripped from content trees.", "error");
+  try {
+    await apiRequest(`/admin/comments/${id}`, {
+      method: "DELETE",
+      headers: { "x-admin-token": getAdminToken() },
+    });
+    comments = comments.filter((c) => c.id !== id);
+    renderComments();
+    updateBadges();
+    showToast("Node stripped from content trees.", "error");
+  } catch (error) {
+    showToast(error.message || "Unable to delete comment.", "error");
+  }
 }
 
 // ── CONSULTING PIPELINES ──

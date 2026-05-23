@@ -116,12 +116,28 @@ db.exec(`
     category_color TEXT NOT NULL DEFAULT 'sand',
     image TEXT NOT NULL DEFAULT '',
     slug TEXT NOT NULL UNIQUE,
+    content TEXT NOT NULL DEFAULT '',
     excerpt TEXT NOT NULL DEFAULT '',
     published_at TEXT NOT NULL DEFAULT '',
     status TEXT NOT NULL DEFAULT 'Draft',
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
   );
+
+  CREATE TABLE IF NOT EXISTS comments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    post_id INTEGER NOT NULL,
+    author TEXT NOT NULL,
+    email TEXT NOT NULL,
+    text TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'Pending',
+    reply TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_comments_post_id ON comments(post_id);
+  CREATE INDEX IF NOT EXISTS idx_comments_status ON comments(status);
 
   CREATE TABLE IF NOT EXISTS contacts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -133,15 +149,21 @@ db.exec(`
   );
 `);
 
+const postColumns = db.prepare("PRAGMA table_info(posts)").all();
+if (!postColumns.some((column) => column.name === "content")) {
+  db.exec("ALTER TABLE posts ADD COLUMN content TEXT NOT NULL DEFAULT ''");
+}
+db.exec("UPDATE posts SET content = excerpt WHERE content = ''");
+
 const insertSeedPost = db.prepare(`
   INSERT OR IGNORE INTO posts (
-    title, category, location, category_color, image, slug, excerpt, published_at, status
+    title, category, location, category_color, image, slug, content, excerpt, published_at, status
   ) VALUES (
-    @title, @category, @location, @categoryColor, @image, @slug, @excerpt, @publishedAt, @status
+    @title, @category, @location, @categoryColor, @image, @slug, @content, @excerpt, @publishedAt, @status
   )
 `);
 const seedMissingPosts = db.transaction((posts) =>
-  posts.forEach((post) => insertSeedPost.run(post)),
+  posts.forEach((post) => insertSeedPost.run({ ...post, content: post.content || post.excerpt })),
 );
 seedMissingPosts(seedPosts);
 
@@ -154,11 +176,28 @@ function toPost(row) {
     categoryColor: row.category_color,
     image: row.image,
     slug: row.slug,
+    content: row.content || row.excerpt,
     excerpt: row.excerpt,
     date: row.published_at,
     status: row.status,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+  };
+}
+
+function toComment(row) {
+  return {
+    id: row.id,
+    postId: row.post_id,
+    postTitle: row.post_title || "",
+    postSlug: row.post_slug || "",
+    author: row.author,
+    email: row.email,
+    text: row.text,
+    pending: row.status !== "Approved",
+    status: row.status,
+    date: row.created_at,
+    replies: row.reply ? [{ author: "Kimia", text: row.reply }] : [],
   };
 }
 
@@ -181,6 +220,7 @@ function requireAdmin(req, res, next) {
 function postPayload(body) {
   const title = String(body.title || "").trim();
   const category = String(body.category || "").trim();
+  const content = String(body.content || body.excerpt || "").trim();
   if (!title || !category) {
     const error = new Error("title and category are required");
     error.status = 400;
@@ -194,7 +234,8 @@ function postPayload(body) {
     categoryColor: String(body.categoryColor || "sand").trim(),
     image: String(body.image || seedPosts[0].image).trim(),
     slug: String(body.slug || slugify(title)).trim(),
-    excerpt: String(body.excerpt || "").trim(),
+    content,
+    excerpt: String(body.excerpt || content).trim(),
     publishedAt: String(body.date || body.publishedAt || "Just Now").trim(),
     status: String(body.status || "Draft").trim(),
   };
@@ -239,6 +280,10 @@ Object.entries(pageRoutes).forEach(([route, file]) => {
   });
 });
 
+app.get("/blog/:slug", (req, res) => {
+  res.sendFile(path.join(__dirname, "blog-post.html"));
+});
+
 app.get("/api/health", (req, res) => {
   res.json({ ok: true, database: "sqlite", timestamp: new Date().toISOString() });
 });
@@ -281,15 +326,81 @@ app.get("/api/posts", (req, res) => {
   res.json({ posts: db.prepare(sql).all(params).map(toPost) });
 });
 
+app.get("/api/posts/:slug", (req, res) => {
+  const slug = String(req.params.slug || "").trim();
+  const row = db
+    .prepare("SELECT * FROM posts WHERE slug = ? AND status = 'Published'")
+    .get(slug);
+
+  if (!row) return res.status(404).json({ error: "Post not found" });
+
+  const publishedPosts = db
+    .prepare("SELECT * FROM posts WHERE status = 'Published' ORDER BY id DESC")
+    .all()
+    .map(toPost);
+  const currentIndex = publishedPosts.findIndex((post) => post.slug === slug);
+  const previous = currentIndex > 0 ? publishedPosts[currentIndex - 1] : null;
+  const next =
+    currentIndex > -1 && currentIndex < publishedPosts.length - 1
+      ? publishedPosts[currentIndex + 1]
+      : null;
+  const comments = db
+    .prepare(
+      `SELECT comments.*, posts.title AS post_title, posts.slug AS post_slug
+       FROM comments
+       JOIN posts ON posts.id = comments.post_id
+       WHERE comments.post_id = ? AND comments.status = 'Approved'
+       ORDER BY comments.id ASC`,
+    )
+    .all(row.id)
+    .map(toComment);
+
+  res.json({
+    post: toPost(row),
+    previous,
+    next,
+    comments,
+  });
+});
+
+app.post("/api/posts/:slug/comments", (req, res) => {
+  const slug = String(req.params.slug || "").trim();
+  const post = db
+    .prepare("SELECT * FROM posts WHERE slug = ? AND status = 'Published'")
+    .get(slug);
+
+  if (!post) return res.status(404).json({ error: "Post not found" });
+
+  const author = String(req.body.author || req.body.name || "").trim();
+  const email = String(req.body.email || "").trim();
+  const text = String(req.body.text || req.body.comment || "").trim();
+
+  if (!author || !email || !text) {
+    return res.status(400).json({ error: "name, email, and comment are required" });
+  }
+
+  const result = db
+    .prepare(
+      "INSERT INTO comments (post_id, author, email, text) VALUES (?, ?, ?, ?)",
+    )
+    .run(post.id, author, email, text);
+
+  res.status(201).json({
+    ok: true,
+    id: result.lastInsertRowid,
+    message: "Comment submitted for moderation.",
+  });
+});
+
 app.post("/api/posts", requireAdmin, (req, res, next) => {
   try {
     const payload = postPayload(req.body);
     const result = db
       .prepare(
         `INSERT INTO posts (
-          title, category, location, category_color, image, slug, excerpt, published_at, status
+          title, category, location, category_color, image, slug, content, excerpt, published_at, status
         ) VALUES (
-          @title, @category, @location, @categoryColor, @image, @slug, @excerpt, @publishedAt, @status
+          @title, @category, @location, @categoryColor, @image, @slug, @content, @excerpt, @publishedAt, @status
         )`,
       )
       .run(payload);
@@ -319,6 +430,7 @@ app.put("/api/posts/:id", requireAdmin, (req, res, next) => {
            category_color = @categoryColor,
            image = @image,
            slug = @slug,
+           content = @content,
            excerpt = @excerpt,
            published_at = @publishedAt,
            status = @status,
@@ -333,8 +445,77 @@ app.put("/api/posts/:id", requireAdmin, (req, res, next) => {
 });
 
 app.delete("/api/posts/:id", requireAdmin, (req, res) => {
-  const result = db.prepare("DELETE FROM posts WHERE id = ?").run(Number(req.params.id));
+  const id = Number(req.params.id);
+  db.prepare("DELETE FROM comments WHERE post_id = ?").run(id);
+  const result = db.prepare("DELETE FROM posts WHERE id = ?").run(id);
   if (result.changes === 0) return res.status(404).json({ error: "Post not found" });
+  res.status(204).end();
+});
+
+app.get("/api/admin/comments", requireAdmin, (req, res) => {
+  const comments = db
+    .prepare(
+      `SELECT comments.*, posts.title AS post_title, posts.slug AS post_slug
+       FROM comments
+       JOIN posts ON posts.id = comments.post_id
+       ORDER BY comments.id DESC`,
+    )
+    .all()
+    .map(toComment);
+  res.json({ comments });
+});
+
+app.put("/api/admin/comments/:id/approve", requireAdmin, (req, res) => {
+  const id = Number(req.params.id);
+  const result = db
+    .prepare(
+      "UPDATE comments SET status = 'Approved', updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+    )
+    .run(id);
+
+  if (result.changes === 0) return res.status(404).json({ error: "Comment not found" });
+
+  const row = db
+    .prepare(
+      `SELECT comments.*, posts.title AS post_title, posts.slug AS post_slug
+       FROM comments
+       JOIN posts ON posts.id = comments.post_id
+       WHERE comments.id = ?`,
+    )
+    .get(id);
+  res.json({ comment: toComment(row) });
+});
+
+app.post("/api/admin/comments/:id/reply", requireAdmin, (req, res) => {
+  const id = Number(req.params.id);
+  const reply = String(req.body.text || req.body.reply || "").trim();
+
+  if (!reply) return res.status(400).json({ error: "reply text is required" });
+
+  const result = db
+    .prepare(
+      `UPDATE comments
+       SET reply = ?, status = 'Approved', updated_at = CURRENT_TIMESTAMP
+       WHERE id = ?`,
+    )
+    .run(reply, id);
+
+  if (result.changes === 0) return res.status(404).json({ error: "Comment not found" });
+
+  const row = db
+    .prepare(
+      `SELECT comments.*, posts.title AS post_title, posts.slug AS post_slug
+       FROM comments
+       JOIN posts ON posts.id = comments.post_id
+       WHERE comments.id = ?`,
+    )
+    .get(id);
+  res.json({ comment: toComment(row) });
+});
+
+app.delete("/api/admin/comments/:id", requireAdmin, (req, res) => {
+  const result = db.prepare("DELETE FROM comments WHERE id = ?").run(Number(req.params.id));
+  if (result.changes === 0) return res.status(404).json({ error: "Comment not found" });
   res.status(204).end();
 });
 

@@ -48,6 +48,10 @@
       "dest": "/blog.html"
     },
     {
+      "src": "/blog/(.*)",
+      "dest": "/blog-post.html"
+    },
+    {
       "src": "/about",
       "dest": "/about.html"
     },

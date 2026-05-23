@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Blog Post | Kimia's Kravings</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,600;0,800;1,800&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body class="page-blog-post">
+    <canvas id="paint-canvas"></canvas>
+    <div id="cursor-dot"></div>
+
+    <div class="mobile-nav" id="mobileNav">
+      <a href="/">Home</a><a href="/about">About Kimia</a>
+      <a href="/blog">Blog</a><a href="/consulting">Consulting</a>
+      <a href="/contact">Contact</a>
+    </div>
+
+    <header class="header" id="header">
+      <div class="container nav-container">
+        <a href="/" class="logo">
+          <img
+            src="/UNIT 90K (32).png"
+            alt="Kimia's Kravings Logo"
+            class="logo-icon"
+          />
+          Kimia's Kravings<span>.</span>
+        </a>
+
+        <nav class="desktop-nav items-center">
+          <a href="/" class="nav-link">Home</a>
+          <a href="/about" class="nav-link">About Kimia</a>
+          <a href="/blog" class="nav-link active">Blog</a>
+          <a href="/consulting" class="nav-link">Consulting and Services</a>
+          <a href="/contact" class="btn-primary nav-cta-compact">
+            <span>Work With Kimia</span>
+          </a>
+        </nav>
+
+        <button class="mobile-menu-btn" id="menuBtn" aria-label="Toggle Menu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+    </header>
+
+    <main data-post-page>
+      <section class="single-post-hero grid-surface">
+        <div class="container">
+          <a href="/blog" class="post-back-link">&larr; Back to Blog</a>
+          <div class="diabla-eyebrow single-post-kicker" id="singlePostKicker">
+            Loading
+          </div>
+          <h1 class="single-post-title" id="singlePostTitle">
+            Loading Kraving...
+          </h1>
+          <div class="single-post-meta" id="singlePostMeta"></div>
+        </div>
+      </section>
+
+      <section class="single-post-media">
+        <div class="container">
+          <img id="singlePostImage" alt="" />
+        </div>
+      </section>
+
+      <section class="single-post-body">
+        <div class="container">
+          <article class="single-post-content" id="singlePostContent">
+            <p>Loading the full story...</p>
+          </article>
+
+          <nav
+            class="single-post-nav"
+            id="singlePostNav"
+            aria-label="Post navigation"
+          ></nav>
+        </div>
+      </section>
+
+      <section class="comments-section">
+        <div class="container comments-inner">
+          <div class="comments-copy">
+            <div class="diabla-eyebrow">Discussion</div>
+            <h2 class="comments-title" id="commentsCount">0 Comments</h2>
+            <div class="comments-list" id="commentsList"></div>
+          </div>
+
+          <form class="comment-form-panel" id="commentForm">
+            <div class="diabla-eyebrow">Leave a Reply</div>
+            <div class="form-group">
+              <label class="form-label" for="commentName">Name</label>
+              <input
+                class="form-input"
+                id="commentName"
+                type="text"
+                autocomplete="name"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="commentEmail">Email</label>
+              <input
+                class="form-input"
+                id="commentEmail"
+                type="email"
+                autocomplete="email"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="commentText">Comment</label>
+              <textarea
+                class="form-input"
+                id="commentText"
+                rows="6"
+                required
+              ></textarea>
+            </div>
+            <button class="btn-primary comment-submit" type="submit">
+              <span>Submit Comment</span>
+            </button>
+            <div class="comment-status" id="commentStatus"></div>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-grid">
+          <div>
+            <div class="footer-logo">Kimia's Kravings<span>.</span></div>
+            <p>
+              Exploring the convergence of taste, locations, and structural
+              aesthetics.
+            </p>
+          </div>
+          <div class="footer-links-group">
+            <h4>Navigation</h4>
+            <div class="footer-links">
+              <a href="/">Home</a><a href="/about">About</a>
+              <a href="/blog">Blog</a><a href="/consulting">Consulting</a>
+            </div>
+          </div>
+          <div class="footer-links-group">
+            <h4>Social</h4>
+            <div class="footer-links">
+              <a href="#">Instagram</a><a href="#">Pinterest</a>
+              <a href="#">YouTube</a><a href="#">LinkedIn</a>
+            </div>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <div>&copy; 2026 Kimia's Kravings.</div>
+          <div>All Rights Reserved.</div>
+        </div>
+      </div>
+    </footer>
+
+    <div id="toast" class="toast">Success Module Triggered</div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://unpkg.com/split-type"></script>
+    <script src="/script.js"></script>
+  </body>
+</html>
