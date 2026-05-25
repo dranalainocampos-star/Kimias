@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,600;0,800;1,800&amp;display=swap"
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,600;0,800;1,800&amp;family=Unbounded:wght@700;800;900&amp;display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="style.css" />
@@ -73,13 +73,18 @@
           class="hero-title tracking-stark leading-tight hero-title-primary"
           id="heroTitle"
         >
-          Your ultimate<br />go-to Guide for<br />where to Eat,<br />Drink &amp;
-          BE MERRY
+          Your ultimate<br />go-to Guide for<br />where to
+          <span class="text-accent">Eat</span>,<br /><span
+            class="text-accent text-accent-warm"
+            >Drink</span
+          >
+          &amp; BE <span class="text-accent">MERRY</span>
         </h1>
         <p class="hero-subtext hero-subtext-muted">
           A San Francisco-based lifestyle brand exploring the intersection of
-          food, travel, and modern living. Join 76K+ followers on a journey
-          through restaurant reviews and editorial content.
+          food, travel, and modern living. Join
+          <span class="copy-accent">76K+ followers</span> on a journey through
+          restaurant reviews and editorial content.
         </p>
         <div class="flex items-center gap-4 hero-action-row">
           <a href="#blog" class="btn-primary">
@@ -237,7 +242,26 @@
           data-blog-initial="7"
         ></div>
 
-        <div style="display: flex; justify-content: center; margin-top: 3rem">
+        <aside class="blog-sidecar fade-up delay-100" aria-label="Blog highlights">
+          <div class="diabla-eyebrow">Kravings Radar</div>
+          <h3>Fresh finds, city notes, and tables worth planning around.</h3>
+          <div class="blog-sidecar-links">
+            <a href="/blog">
+              <span>01</span>
+              Latest Articles
+            </a>
+            <a href="/blog">
+              <span>02</span>
+              Food Guides
+            </a>
+            <a href="/blog">
+              <span>03</span>
+              Travel Notes
+            </a>
+          </div>
+        </aside>
+
+        <div class="blog-more-wrap">
           <a href="/blog" class="btn-primary">
             <span>View More Articles</span>
             <svg
@@ -263,7 +287,7 @@
               Trending Visuals
             </div>
             <h2 class="tracking-stark section-title">
-              As Seen On IG Reels &amp; TikTok
+              As Seen On Instagram &amp; TikTok
             </h2>
           </div>
           <a
