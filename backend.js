@@ -264,6 +264,22 @@ app.use(
 app.use(express.json({ limit: "1mb" }));
 app.use("/uploads", express.static(UPLOADS_DIR));
 
+const cleanRouteRedirects = {
+  "/index.html": "/",
+  "/home.html": "/",
+  "/admin.html": "/admin",
+  "/blog.html": "/blog",
+  "/about.html": "/about",
+  "/consulting.html": "/consulting",
+  "/contact.html": "/contact",
+};
+
+Object.entries(cleanRouteRedirects).forEach(([route, destination]) => {
+  app.get(route, (req, res) => {
+    res.redirect(301, destination);
+  });
+});
+
 const pageRoutes = {
   "/": "index.html",
   "/home": "index.html",

@@ -32,6 +32,55 @@
       "dest": "/api/index.js"
     },
     {
+      "src": "/index\\.html",
+      "status": 308,
+      "headers": {
+        "Location": "/"
+      }
+    },
+    {
+      "src": "/home\\.html",
+      "status": 308,
+      "headers": {
+        "Location": "/"
+      }
+    },
+    {
+      "src": "/admin\\.html",
+      "status": 308,
+      "headers": {
+        "Location": "/admin"
+      }
+    },
+    {
+      "src": "/blog\\.html",
+      "status": 308,
+      "headers": {
+        "Location": "/blog"
+      }
+    },
+    {
+      "src": "/about\\.html",
+      "status": 308,
+      "headers": {
+        "Location": "/about"
+      }
+    },
+    {
+      "src": "/consulting\\.html",
+      "status": 308,
+      "headers": {
+        "Location": "/consulting"
+      }
+    },
+    {
+      "src": "/contact\\.html",
+      "status": 308,
+      "headers": {
+        "Location": "/contact"
+      }
+    },
+    {
       "src": "/",
       "dest": "/index.html"
     },
