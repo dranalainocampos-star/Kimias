@@ -8602,3 +8602,14 @@ html {
 .page-index .hero-badge-dot {
   box-shadow: 8px 0 0 -2px rgba(255, 62, 62, 0.2);
 }
+
+/* Pink + peach color trial */
+:root {
+  --diabla-red: #f8528f;
+  --diabla-orange: #ff8f68;
+  --diabla-accent: #ff9f75;
+  --diabla-sand-yellow: #ffd1ad;
+  --diabla-dusky-pink: #ffc1d3;
+  --glow-red: rgba(248, 82, 143, 0.34);
+  --glow-orange: rgba(255, 143, 104, 0.28);
+}
