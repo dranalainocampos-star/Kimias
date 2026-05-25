@@ -263,6 +263,14 @@ function initPaintCursor() {
   const canvas = document.getElementById("paint-canvas");
   if (!dot || !canvas) return;
 
+  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const supportsFinePointer = window.matchMedia("(pointer: fine)").matches;
+  if (prefersReducedMotion || !supportsFinePointer || window.innerWidth < 1024) {
+    dot.hidden = true;
+    canvas.hidden = true;
+    return;
+  }
+
   const ctx = canvas.getContext("2d");
   const palette = [
     "#ff3e3e",
@@ -276,24 +284,35 @@ function initPaintCursor() {
   let colorIndex = 0;
   let lastX = null;
   let lastY = null;
+  let fadeRaf = null;
+  let lastPaintAt = 0;
 
   function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
   }
 
-  function fadeLoop() {
+  function fadeLoop(now = performance.now()) {
+    if (now - lastPaintAt > 1200) {
+      fadeRaf = null;
+      return;
+    }
+
     ctx.globalCompositeOperation = "destination-out";
     ctx.globalAlpha = 0.12;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.globalCompositeOperation = "source-over";
     ctx.globalAlpha = 1;
-    requestAnimationFrame(fadeLoop);
+    fadeRaf = requestAnimationFrame(fadeLoop);
+  }
+
+  function requestFade() {
+    lastPaintAt = performance.now();
+    if (!fadeRaf) fadeRaf = requestAnimationFrame(fadeLoop);
   }
 
   resizeCanvas();
-  window.addEventListener("resize", resizeCanvas);
-  fadeLoop();
+  window.addEventListener("resize", resizeCanvas, { passive: true });
 
   window.addEventListener("mousemove", (event) => {
     dot.style.left = event.clientX + "px";
@@ -315,16 +334,16 @@ function initPaintCursor() {
     dot.style.borderColor = paintColor;
     dot.style.setProperty("--dot-color", paintColor);
 
-    for (let i = 0; i < 5; i++) {
-      const offset = (i - 2) * (pressure * 0.28);
+    for (let i = 0; i < 3; i++) {
+      const offset = (i - 1) * (pressure * 0.28);
       const perpX = (-dy / (speed || 1)) * offset;
       const perpY = (dx / (speed || 1)) * offset;
-      const alpha = 0.55 - Math.abs(i - 2) * 0.09;
+      const alpha = 0.55 - Math.abs(i - 1) * 0.09;
 
       ctx.globalCompositeOperation = "source-over";
       ctx.globalAlpha = alpha;
       ctx.strokeStyle = paintColor;
-      ctx.lineWidth = Math.max(1, pressure * (1 - Math.abs(i - 2) * 0.15));
+      ctx.lineWidth = Math.max(1, pressure * (1 - Math.abs(i - 1) * 0.15));
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
       ctx.beginPath();
@@ -350,7 +369,8 @@ function initPaintCursor() {
     ctx.globalAlpha = 1;
     lastX = event.clientX;
     lastY = event.clientY;
-  });
+    requestFade();
+  }, { passive: true });
 
   window.addEventListener("mousedown", (event) => {
     dot.classList.add("clicking");
@@ -371,6 +391,7 @@ function initPaintCursor() {
       ctx.fill();
     }
     ctx.globalAlpha = 1;
+    requestFade();
   });
 
   window.addEventListener("mouseup", () => dot.classList.remove("clicking"));
@@ -485,6 +506,10 @@ function initCountUp() {
 }
 
 function initGridSurfaces() {
+  const supportsFinePointer = window.matchMedia("(pointer: fine)").matches;
+  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (!supportsFinePointer || prefersReducedMotion) return;
+
   document.querySelectorAll(".grid-surface").forEach((section) => {
     if (section.querySelector(":scope > .gs-grid")) return;
 
@@ -506,7 +531,7 @@ function initGridSurfaces() {
         spot.style.background = `radial-gradient(520px circle at ${x}% ${y}%, rgba(255,62,62,0.13) 0%, rgba(255,107,53,0.07) 38%, rgba(244,208,104,0.04) 60%, transparent 75%)`;
         section.classList.add("gs-lit");
       });
-    });
+    }, { passive: true });
 
     section.addEventListener("mouseleave", () => section.classList.remove("gs-lit"));
   });
@@ -514,17 +539,29 @@ function initGridSurfaces() {
 
 function initCardTilt() {
   const tiltSelector = ".card, .post-card";
+  const supportsFinePointer = window.matchMedia("(pointer: fine)").matches;
+  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (!supportsFinePointer || prefersReducedMotion) return;
+
+  let tiltRaf = null;
+  let latestTiltEvent = null;
 
   document.addEventListener("mousemove", (event) => {
-    const card = event.target.closest(tiltSelector);
-    if (!card) return;
+    latestTiltEvent = event;
+    if (tiltRaf) return;
 
-    const rect = card.getBoundingClientRect();
-    const x = (event.clientX - rect.left) / rect.width - 0.5;
-    const y = (event.clientY - rect.top) / rect.height - 0.5;
-    card.style.transform = `translateY(-4px) rotateX(${-y * 6}deg) rotateY(${x * 6}deg)`;
-    card.style.transition = "transform 0.1s ease, box-shadow 0.35s ease";
-  });
+    tiltRaf = requestAnimationFrame(() => {
+      tiltRaf = null;
+      const card = latestTiltEvent.target.closest(tiltSelector);
+      if (!card) return;
+
+      const rect = card.getBoundingClientRect();
+      const x = (latestTiltEvent.clientX - rect.left) / rect.width - 0.5;
+      const y = (latestTiltEvent.clientY - rect.top) / rect.height - 0.5;
+      card.style.transform = `translateY(-4px) rotateX(${-y * 6}deg) rotateY(${x * 6}deg)`;
+      card.style.transition = "transform 0.1s ease, box-shadow 0.35s ease";
+    });
+  }, { passive: true });
 
   document.addEventListener("mouseout", (event) => {
     const card = event.target.closest(tiltSelector);
@@ -533,9 +570,44 @@ function initCardTilt() {
     if (!card || (nextTarget && card.contains(nextTarget))) return;
 
     card.style.transform = "";
-    card.style.transition =
-      "transform 0.5s cubic-bezier(0.16,1,0.3,1), box-shadow 0.35s ease";
+    card.style.transition = "";
   });
+}
+
+function loadExternalScriptOnce(src, id) {
+  if (document.getElementById(id)) return;
+
+  const script = document.createElement("script");
+  script.id = id;
+  script.src = src;
+  script.async = true;
+  document.body.appendChild(script);
+}
+
+function initLazySocialEmbeds() {
+  const section = document.getElementById("social-feed");
+  if (!section) return;
+
+  const loadEmbeds = () => {
+    loadExternalScriptOnce("https://www.instagram.com/embed.js", "instagram-embed-script");
+    loadExternalScriptOnce("https://www.tiktok.com/embed.js", "tiktok-embed-script");
+  };
+
+  if (!("IntersectionObserver" in window)) {
+    window.addEventListener("load", loadEmbeds, { once: true });
+    return;
+  }
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      if (!entries.some((entry) => entry.isIntersecting)) return;
+      observer.disconnect();
+      loadEmbeds();
+    },
+    { rootMargin: "700px 0px", threshold: 0.01 },
+  );
+
+  observer.observe(section);
 }
 
 function getDelayClass(index) {
@@ -1003,21 +1075,25 @@ function initGsapEnhancements() {
     if (element.dataset.splitAnimated === "true") return;
     element.dataset.splitAnimated = "true";
 
-    new SplitType(element, { types: "words, chars" });
-    const characters = element.querySelectorAll(".char");
+    new SplitType(element, { types: "words" });
+    const words = element.querySelectorAll(".word");
 
-    gsap.to(characters, {
-      y: "0%",
-      opacity: 1,
-      duration: 1.1,
-      ease: "power4.out",
-      stagger: 0.025,
-      scrollTrigger: {
-        trigger: element,
-        start: "top 88%",
-        toggleActions: "play none none reverse",
+    gsap.fromTo(
+      words,
+      { y: "115%", opacity: 0 },
+      {
+        y: "0%",
+        opacity: 1,
+        duration: 0.9,
+        ease: "power4.out",
+        stagger: 0.045,
+        scrollTrigger: {
+          trigger: element,
+          start: "top 88%",
+          toggleActions: "play none none reverse",
+        },
       },
-    });
+    );
   });
 
   const blogSection = document.querySelector(".page-index .featured-section");
@@ -1131,19 +1207,23 @@ function initAdminBindings() {
 }
 
 window.addEventListener("DOMContentLoaded", async () => {
-  await loadInitialData();
+  const initialDataPromise = loadInitialData();
+
   initPaintCursor();
   initHeaderAndMenu();
   initFadeUp();
-  initBlogPagination();
-  await initSinglePostPage();
   initCountUp();
   initGridSurfaces();
   initCardTilt();
-  initBlogFilters();
-  initGsapEnhancements();
+  initLazySocialEmbeds();
   initContactForm();
   initAdminBindings();
+
+  await initialDataPromise;
+  initBlogPagination();
+  await initSinglePostPage();
+  initBlogFilters();
+  initGsapEnhancements();
 });
 
 async function dispatchFormPayload(event) {

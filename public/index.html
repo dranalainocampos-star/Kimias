@@ -99,9 +99,11 @@
 
       <div class="hero-split-image overflow-hidden fade-up delay-100">
         <img
-          src="UNIT 90K (28).png"
+          src="UNIT 90K (28).jpg"
           alt="Editorial layout graphic"
           class="w-full h-full object-cover"
+          fetchpriority="high"
+          decoding="async"
         />
         <div class="hero-badge">
           <div class="hero-badge-kicker">Featured On</div>
@@ -200,9 +202,11 @@
       <div class="about-split-grid">
         <div class="about-split-image overflow-hidden fade-up">
           <img
-            src="UNIT 90K (34).png"
+            src="UNIT 90K (34).jpg"
             alt="Kimia Portrait"
             class="w-full h-full object-cover"
+            loading="lazy"
+            decoding="async"
           />
         </div>
 
@@ -584,7 +588,6 @@
                 </p>
               </div>
             </blockquote>
-            <script async src="//www.instagram.com/embed.js"></script>
           </div>
 
           <div class="social-embed-card">
@@ -640,7 +643,6 @@
                 >
               </section>
             </blockquote>
-            <script async src="https://www.tiktok.com/embed.js"></script>
           </div>
 
           <div class="social-embed-card">
@@ -928,7 +930,6 @@
                 </p>
               </div>
             </blockquote>
-            <script async src="//www.instagram.com/embed.js"></script>
           </div>
 
           <div class="social-embed-card">
@@ -984,7 +985,6 @@
                 >
               </section>
             </blockquote>
-            <script async src="https://www.tiktok.com/embed.js"></script>
           </div>
         </div>
       </div>
@@ -1002,7 +1002,11 @@
             </p>
           </div>
           <div class="book-actions">
-            <a href="/contact" class="btn-white"
+            <a
+              href="https://calendly.com/kimiakalbasi/30min?month=2022-12"
+              class="btn-white"
+              target="_blank"
+              rel="noopener noreferrer"
               ><span>Book a Free Call</span
               ><svg class="icon"><path d="M5 12h14M12 5l7 7-7 7" /></svg
             ></a>
@@ -1045,12 +1049,15 @@
       </div>
     </footer>
 
-    <script async src="//www.instagram.com/embed.js"></script>
-    <script async src="https://www.tiktok.com/embed.js"></script>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-    <script src="https://unpkg.com/split-type"></script>
-    <script src="script.js?v=1.0.1"></script>
+    <script
+      defer
+      src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"
+    ></script>
+    <script
+      defer
+      src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"
+    ></script>
+    <script defer src="https://unpkg.com/split-type"></script>
+    <script defer src="script.js?v=1.0.2"></script>
   </body>
 </html>
