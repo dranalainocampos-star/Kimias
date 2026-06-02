@@ -247,6 +247,7 @@ async function loadInitialData() {
         date: post.date,
         status: post.status,
         image: post.image,
+        supportingImages: Array.isArray(post.supportingImages) ? post.supportingImages : [],
         slug: post.slug,
         content: post.content,
         location: post.location,
@@ -261,143 +262,43 @@ async function loadInitialData() {
 function initPaintCursor() {
   const dot = document.getElementById("cursor-dot");
   const canvas = document.getElementById("paint-canvas");
-  if (!dot || !canvas) return;
+  if (!dot) return;
 
   const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const supportsFinePointer = window.matchMedia("(pointer: fine)").matches;
-  if (prefersReducedMotion || !supportsFinePointer || window.innerWidth < 1024) {
+  if (prefersReducedMotion || !supportsFinePointer || window.innerWidth < 768) {
     dot.hidden = true;
-    canvas.hidden = true;
+    if (canvas) canvas.hidden = true;
     return;
   }
 
-  const ctx = canvas.getContext("2d");
-  const palette = [
-    "#ff3e3e",
-    "#ff6b35",
-    "#f4d068",
-    "#dfb2b2",
-    "#8da082",
-    "#ff3e3e",
-    "#ff6b35",
-  ];
-  let colorIndex = 0;
-  let lastX = null;
-  let lastY = null;
-  let fadeRaf = null;
-  let lastPaintAt = 0;
-
-  function resizeCanvas() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-  }
-
-  function fadeLoop(now = performance.now()) {
-    if (now - lastPaintAt > 1200) {
-      fadeRaf = null;
-      return;
-    }
-
-    ctx.globalCompositeOperation = "destination-out";
-    ctx.globalAlpha = 0.12;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.globalCompositeOperation = "source-over";
-    ctx.globalAlpha = 1;
-    fadeRaf = requestAnimationFrame(fadeLoop);
-  }
-
-  function requestFade() {
-    lastPaintAt = performance.now();
-    if (!fadeRaf) fadeRaf = requestAnimationFrame(fadeLoop);
-  }
-
-  resizeCanvas();
-  window.addEventListener("resize", resizeCanvas, { passive: true });
+  if (canvas) canvas.hidden = true;
 
   window.addEventListener("mousemove", (event) => {
     dot.style.left = event.clientX + "px";
     dot.style.top = event.clientY + "px";
-
-    if (lastX === null) {
-      lastX = event.clientX;
-      lastY = event.clientY;
-      return;
-    }
-
-    const dx = event.clientX - lastX;
-    const dy = event.clientY - lastY;
-    const speed = Math.sqrt(dx * dx + dy * dy);
-    const pressure = Math.max(2, Math.min(22, 18 - speed * 0.35));
-    colorIndex += speed * 0.008;
-    const paintColor = palette[Math.floor(colorIndex) % palette.length];
-
-    dot.style.borderColor = paintColor;
-    dot.style.setProperty("--dot-color", paintColor);
-
-    for (let i = 0; i < 3; i++) {
-      const offset = (i - 1) * (pressure * 0.28);
-      const perpX = (-dy / (speed || 1)) * offset;
-      const perpY = (dx / (speed || 1)) * offset;
-      const alpha = 0.55 - Math.abs(i - 1) * 0.09;
-
-      ctx.globalCompositeOperation = "source-over";
-      ctx.globalAlpha = alpha;
-      ctx.strokeStyle = paintColor;
-      ctx.lineWidth = Math.max(1, pressure * (1 - Math.abs(i - 1) * 0.15));
-      ctx.lineCap = "round";
-      ctx.lineJoin = "round";
-      ctx.beginPath();
-      ctx.moveTo(lastX + perpX, lastY + perpY);
-      ctx.lineTo(event.clientX + perpX, event.clientY + perpY);
-      ctx.stroke();
-    }
-
-    if (pressure > 14 && Math.random() < 0.25) {
-      ctx.globalAlpha = 0.18;
-      ctx.beginPath();
-      ctx.arc(
-        event.clientX,
-        event.clientY,
-        pressure * (0.6 + Math.random() * 0.5),
-        0,
-        Math.PI * 2,
-      );
-      ctx.fillStyle = paintColor;
-      ctx.fill();
-    }
-
-    ctx.globalAlpha = 1;
-    lastX = event.clientX;
-    lastY = event.clientY;
-    requestFade();
+    dot.classList.add("is-visible");
   }, { passive: true });
 
-  window.addEventListener("mousedown", (event) => {
+  window.addEventListener("mousedown", () => {
     dot.classList.add("clicking");
-    for (let i = 0; i < 6; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const dist = Math.random() * 28;
-      const radius = 2 + Math.random() * 7;
-      ctx.globalAlpha = 0.5 + Math.random() * 0.35;
-      ctx.beginPath();
-      ctx.arc(
-        event.clientX + Math.cos(angle) * dist,
-        event.clientY + Math.sin(angle) * dist,
-        radius,
-        0,
-        Math.PI * 2,
-      );
-      ctx.fillStyle = palette[Math.floor(Math.random() * palette.length)];
-      ctx.fill();
-    }
-    ctx.globalAlpha = 1;
-    requestFade();
   });
 
   window.addEventListener("mouseup", () => dot.classList.remove("clicking"));
 
   const hoverSelector =
     "a, button, .btn, .card, .post-card, .does-item, .service-card, .dna-cell, .nav-item, .logout-btn, .login-btn, .filter-tab";
+  const redSurfaceSelector =
+    ".book-section, .featured-in, .cta-band, .partnership-cta";
+
+  document.addEventListener("mousemove", (event) => {
+    const target = event.target instanceof Element ? event.target : null;
+    dot.classList.toggle(
+      "on-red-surface",
+      Boolean(target?.closest(redSurfaceSelector)),
+    );
+  }, { passive: true });
+
   document.addEventListener("mouseover", (event) => {
     if (event.target.closest(hoverSelector)) dot.classList.add("hover");
   });
@@ -424,16 +325,41 @@ function initHeaderAndMenu() {
   const mobileNav = document.getElementById("mobileNav");
   if (!menuBtn || !mobileNav) return;
 
+  let closeBtn = mobileNav.querySelector("[data-mobile-nav-close]");
+  if (!closeBtn) {
+    closeBtn = document.createElement("button");
+    closeBtn.type = "button";
+    closeBtn.className = "mobile-nav-close";
+    closeBtn.dataset.mobileNavClose = "true";
+    closeBtn.setAttribute("aria-label", "Close menu");
+    closeBtn.textContent = "X";
+    mobileNav.prepend(closeBtn);
+  }
+
+  const setMobileMenuOpen = (isOpen) => {
+    menuBtn.classList.toggle("open", isOpen);
+    mobileNav.classList.toggle("open", isOpen);
+    document.body.classList.toggle("mobile-nav-active", isOpen);
+    menuBtn.setAttribute("aria-expanded", String(isOpen));
+    mobileNav.setAttribute("aria-hidden", String(!isOpen));
+  };
+
+  menuBtn.setAttribute("aria-expanded", "false");
+  mobileNav.setAttribute("aria-hidden", "true");
+
   menuBtn.addEventListener("click", () => {
-    menuBtn.classList.toggle("open");
-    mobileNav.classList.toggle("open");
+    setMobileMenuOpen(!mobileNav.classList.contains("open"));
   });
 
-  mobileNav.querySelectorAll("a").forEach((link) => {
-    link.addEventListener("click", () => {
-      menuBtn.classList.remove("open");
-      mobileNav.classList.remove("open");
-    });
+  mobileNav.querySelectorAll("a, [data-mobile-nav-close]").forEach((item) => {
+    item.addEventListener("click", () => setMobileMenuOpen(false));
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && mobileNav.classList.contains("open")) {
+      setMobileMenuOpen(false);
+      menuBtn.focus();
+    }
   });
 }
 
@@ -506,34 +432,9 @@ function initCountUp() {
 }
 
 function initGridSurfaces() {
-  const supportsFinePointer = window.matchMedia("(pointer: fine)").matches;
-  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (!supportsFinePointer || prefersReducedMotion) return;
-
-  document.querySelectorAll(".grid-surface").forEach((section) => {
-    if (section.querySelector(":scope > .gs-grid")) return;
-
-    const grid = document.createElement("div");
-    grid.className = "gs-grid";
-    section.insertBefore(grid, section.firstChild);
-
-    const spot = document.createElement("div");
-    spot.className = "gs-spot";
-    section.insertBefore(spot, section.firstChild);
-
-    let rafId = null;
-    section.addEventListener("mousemove", (event) => {
-      if (rafId) cancelAnimationFrame(rafId);
-      rafId = requestAnimationFrame(() => {
-        const rect = section.getBoundingClientRect();
-        const x = ((event.clientX - rect.left) / rect.width) * 100;
-        const y = ((event.clientY - rect.top) / rect.height) * 100;
-        spot.style.background = `radial-gradient(520px circle at ${x}% ${y}%, rgba(255,62,62,0.13) 0%, rgba(255,107,53,0.07) 38%, rgba(244,208,104,0.04) 60%, transparent 75%)`;
-        section.classList.add("gs-lit");
-      });
-    }, { passive: true });
-
-    section.addEventListener("mouseleave", () => section.classList.remove("gs-lit"));
+  document.querySelectorAll(".gs-grid, .gs-spot").forEach((element) => element.remove());
+  document.querySelectorAll(".grid-surface.gs-lit").forEach((section) => {
+    section.classList.remove("gs-lit");
   });
 }
 
@@ -661,10 +562,6 @@ function renderHomeBlogCard(post, index) {
       <div class="card-content">
         <span class="diabla-eyebrow card-eyebrow">${escapeHTML(post.location)}</span>
         <h3 class="card-title">${escapeHTML(post.title)}</h3>
-        <div class="card-arrow">
-          Read More
-          <svg class="icon"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
-        </div>
       </div>
     </a>
   `;
@@ -881,6 +778,45 @@ function renderApprovedComments(commentsList = []) {
     .join("");
 }
 
+function renderSupportingPhotoGallery(images = [], title = "") {
+  const gallery = document.getElementById("singlePostGallery");
+  if (!gallery) return;
+
+  const supportingImages = Array.isArray(images)
+    ? images.map((image) => String(image || "").trim()).filter(Boolean)
+    : [];
+
+  if (!supportingImages.length) {
+    gallery.classList.remove("is-visible");
+    gallery.innerHTML = "";
+    return;
+  }
+
+  gallery.classList.add("is-visible");
+  gallery.innerHTML = `
+    <div class="single-post-gallery-heading">
+      <span>Supporting Photos</span>
+      <strong>${supportingImages.length}</strong>
+    </div>
+    <div class="single-post-gallery-grid">
+      ${supportingImages
+        .map(
+          (image, index) => `
+            <figure class="single-post-gallery-item">
+              <img
+                src="${escapeHTML(image)}"
+                alt="${escapeHTML(`${title || "Blog post"} supporting photo ${index + 1}`)}"
+                loading="lazy"
+                decoding="async"
+              />
+            </figure>
+          `,
+        )
+        .join("")}
+    </div>
+  `;
+}
+
 function renderSinglePostPage(payload) {
   const { post, previous, next, comments: commentsList = [] } = payload;
   const title = document.getElementById("singlePostTitle");
@@ -907,6 +843,7 @@ function renderSinglePostPage(payload) {
   if (content) {
     content.innerHTML = formatPostContent(post.content || post.excerpt);
   }
+  renderSupportingPhotoGallery(post.supportingImages, post.title);
   if (nav) {
     nav.innerHTML = `
       ${renderPostNavItem(previous, "previous")}
@@ -1096,39 +1033,6 @@ function initGsapEnhancements() {
     );
   });
 
-  const blogSection = document.querySelector(".page-index .featured-section");
-  const cardsContainer = document.querySelector(".page-index .featured-cards");
-  if (!blogSection || !cardsContainer || window.innerWidth < 1024) return;
-
-  blogSection.classList.add("gsap-carousel");
-  const headingEl = blogSection.querySelector(".featured-header");
-  if (headingEl) headingEl.classList.add("section-header-wrap");
-
-  const getScrollDistance = () => {
-    const cards = Array.from(cardsContainer.children);
-    const lastCard = cards.at(-1);
-    const cardWidth = lastCard?.getBoundingClientRect().width || 440;
-    const sideGutter = Math.max(128, window.innerWidth * 0.12);
-    const baseDistance = cardsContainer.scrollWidth - window.innerWidth;
-
-    return Math.max(0, baseDistance + cardWidth + sideGutter);
-  };
-
-  gsap.to(cardsContainer, {
-    x: () => -getScrollDistance(),
-    ease: "none",
-    scrollTrigger: {
-      trigger: blogSection,
-      pin: true,
-      pinSpacing: true,
-      scrub: 1.1,
-      start: "top top",
-      end: () => `+=${getScrollDistance()}`,
-      invalidateOnRefresh: true,
-      anticipatePin: 1,
-    },
-  });
-
   window.addEventListener("load", () => ScrollTrigger.refresh(), { once: true });
 }
 
@@ -1192,6 +1096,10 @@ function initAdminBindings() {
     if (action === "open-post-modal") openPostModal();
     if (action === "close-post-modal") closePostModal();
     if (action === "upload-post-image") uploadPostImage();
+    if (action === "upload-supporting-images") uploadSupportingImages();
+    if (action === "remove-supporting-image") {
+      removeSupportingImage(Number(actionTarget.dataset.index));
+    }
     if (action === "save-post") savePostData();
     if (action === "edit-post") editPost(id);
     if (action === "delete-post") deletePost(id);
@@ -1277,6 +1185,9 @@ let posts = blogData.map((post) => ({
   category: post.category,
   date: post.date,
   status: post.status,
+  image: post.image,
+  slug: post.slug,
+  supportingImages: Array.isArray(post.supportingImages) ? post.supportingImages : [],
 }));
 
 let comments = [];
@@ -1528,7 +1439,12 @@ function openPostModal(editId = null) {
     document.getElementById("postStatusSelect").value = p.status;
     document.getElementById("postContentInput").value = p.content || p.excerpt;
     document.getElementById("postImageInput").value = p.image || "";
+    document.getElementById("postImageUploadInput").value = "";
+    document.getElementById("postSupportingImagesUploadInput").value = "";
     updatePostImagePreview(p.image || "");
+    setSupportingImages(p.supportingImages || []);
+    resetPostUploadStatus("postImageUploadStatus");
+    resetPostUploadStatus("supportingImagesUploadStatus");
   } else {
     document.getElementById("modalActionTitle").textContent =
       "Construct New Blog Post";
@@ -1539,7 +1455,11 @@ function openPostModal(editId = null) {
     document.getElementById("postContentInput").value = "";
     document.getElementById("postImageInput").value = "";
     document.getElementById("postImageUploadInput").value = "";
+    document.getElementById("postSupportingImagesUploadInput").value = "";
     updatePostImagePreview("");
+    setSupportingImages([]);
+    resetPostUploadStatus("postImageUploadStatus");
+    resetPostUploadStatus("supportingImagesUploadStatus");
   }
 }
 
@@ -1572,6 +1492,89 @@ function updatePostImagePreview(url) {
   preview.classList.add("is-visible");
 }
 
+function getSupportingImages() {
+  const input = document.getElementById("postSupportingImagesInput");
+  if (!input) return [];
+
+  try {
+    const parsed = JSON.parse(input.value || "[]");
+    if (!Array.isArray(parsed)) return [];
+    return parsed.map((image) => String(image || "").trim()).filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
+function setSupportingImages(images = []) {
+  const input = document.getElementById("postSupportingImagesInput");
+  const normalized = [
+    ...new Set(images.map((image) => String(image || "").trim()).filter(Boolean)),
+  ];
+
+  if (input) input.value = JSON.stringify(normalized);
+  renderSupportingImagesPreview(normalized);
+}
+
+function renderSupportingImagesPreview(images = getSupportingImages()) {
+  const preview = document.getElementById("supportingImagesPreview");
+  if (!preview) return;
+
+  if (!images.length) {
+    preview.innerHTML = `<div class="supporting-images-empty">No supporting photos added.</div>`;
+    return;
+  }
+
+  preview.innerHTML = images
+    .map(
+      (image, index) => `
+        <div class="supporting-image-thumb">
+          <img src="${escapeHTML(image)}" alt="Supporting photo ${index + 1}" />
+          <button
+            type="button"
+            class="supporting-image-remove"
+            data-action="remove-supporting-image"
+            data-index="${index}"
+            aria-label="Remove supporting photo"
+          >X</button>
+        </div>
+      `,
+    )
+    .join("");
+}
+
+function resetPostUploadStatus(statusId) {
+  const status = document.getElementById(statusId);
+  if (!status) return;
+  status.textContent = "";
+  status.className = "upload-status";
+}
+
+async function uploadImageFile(file) {
+  const formData = new FormData();
+  formData.append("image", file);
+
+  const response = await fetch(`${API_BASE}/uploads`, {
+    method: "POST",
+    headers: {
+      "x-admin-token": getAdminToken(),
+    },
+    body: formData,
+  });
+
+  if (!response.ok) {
+    let message = `Upload failed with status ${response.status}`;
+    try {
+      const payload = await response.json();
+      message = payload.error || message;
+    } catch {
+      // Keep default upload message.
+    }
+    throw new Error(message);
+  }
+
+  return response.json();
+}
+
 async function uploadPostImage() {
   const fileInput = document.getElementById("postImageUploadInput");
   const imageInput = document.getElementById("postImageInput");
@@ -1588,9 +1591,6 @@ async function uploadPostImage() {
     return;
   }
 
-  const formData = new FormData();
-  formData.append("image", file);
-
   try {
     if (status) {
       status.textContent = "Uploading image...";
@@ -1598,26 +1598,7 @@ async function uploadPostImage() {
     }
     if (uploadButton) uploadButton.disabled = true;
 
-    const response = await fetch(`${API_BASE}/uploads`, {
-      method: "POST",
-      headers: {
-        "x-admin-token": getAdminToken(),
-      },
-      body: formData,
-    });
-
-    if (!response.ok) {
-      let message = `Upload failed with status ${response.status}`;
-      try {
-        const payload = await response.json();
-        message = payload.error || message;
-      } catch {
-        // Keep default upload message.
-      }
-      throw new Error(message);
-    }
-
-    const payload = await response.json();
+    const payload = await uploadImageFile(file);
     imageInput.value = payload.url;
     updatePostImagePreview(payload.url);
     if (status) {
@@ -1636,6 +1617,56 @@ async function uploadPostImage() {
   }
 }
 
+async function uploadSupportingImages() {
+  const fileInput = document.getElementById("postSupportingImagesUploadInput");
+  const status = document.getElementById("supportingImagesUploadStatus");
+  const uploadButton = document.querySelector('[data-action="upload-supporting-images"]');
+  const files = Array.from(fileInput?.files || []);
+
+  if (!files.length) {
+    showToast("Select supporting photos before uploading.", "error");
+    if (status) {
+      status.textContent = "Select one or more image files first.";
+      status.className = "upload-status is-error";
+    }
+    return;
+  }
+
+  try {
+    if (status) {
+      status.textContent = `Uploading ${files.length} photo${files.length === 1 ? "" : "s"}...`;
+      status.className = "upload-status";
+    }
+    if (uploadButton) uploadButton.disabled = true;
+
+    const uploaded = await Promise.all(files.map(uploadImageFile));
+    const urls = uploaded.map((payload) => payload.url).filter(Boolean);
+    setSupportingImages([...getSupportingImages(), ...urls]);
+    if (fileInput) fileInput.value = "";
+
+    if (status) {
+      status.textContent = `${urls.length} supporting photo${urls.length === 1 ? "" : "s"} attached.`;
+      status.className = "upload-status is-success";
+    }
+    showToast("Supporting photos uploaded and attached.");
+  } catch (error) {
+    if (status) {
+      status.textContent = error.message || "Unable to upload supporting photos.";
+      status.className = "upload-status is-error";
+    }
+    showToast(error.message || "Unable to upload supporting photos.", "error");
+  } finally {
+    if (uploadButton) uploadButton.disabled = false;
+  }
+}
+
+function removeSupportingImage(index) {
+  const images = getSupportingImages();
+  if (index < 0 || index >= images.length) return;
+  images.splice(index, 1);
+  setSupportingImages(images);
+}
+
 function syncBlogDataFromAdminPost(post) {
   const existing = blogData.find((item) => item.id === post.id);
   const payload = {
@@ -1646,6 +1677,8 @@ function syncBlogDataFromAdminPost(post) {
     categoryColor:
       post.categoryColor || existing?.categoryColor || getCategoryColorFromName(post.category),
     image: post.image || existing?.image || BLOG_DEFAULT_IMAGE,
+    supportingImages:
+      post.supportingImages || existing?.supportingImages || [],
     slug: post.slug || existing?.slug || slugify(post.title),
     content: post.content || existing?.content || post.excerpt,
     excerpt: post.excerpt,
@@ -1663,6 +1696,7 @@ async function savePostData() {
   const cat = document.getElementById("postCategoryInput").value.trim();
   const status = document.getElementById("postStatusSelect").value;
   const image = document.getElementById("postImageInput").value.trim();
+  const supportingImages = getSupportingImages();
   const excerpt = document
     .getElementById("postContentInput")
     .value.trim();
@@ -1681,6 +1715,7 @@ async function savePostData() {
       category: cat,
       status: status,
       image: image || BLOG_DEFAULT_IMAGE,
+      supportingImages,
       content: excerpt || "No description payload defined.",
       location: cat,
       categoryColor: getCategoryColorFromName(cat),
@@ -1701,6 +1736,9 @@ async function savePostData() {
       date: result.post.date,
       status: result.post.status,
       image: result.post.image,
+      supportingImages: Array.isArray(result.post.supportingImages)
+        ? result.post.supportingImages
+        : [],
       slug: result.post.slug,
       content: result.post.content,
       location: result.post.location,

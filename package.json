@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "sync:public": "cp index.html about.html blog.html blog-post.html consulting.html contact.html admin.html style.css script.js \"UNIT 90K (28).png\" \"UNIT 90K (28).jpg\" \"UNIT 90K (29).png\" \"UNIT 90K (32).png\" \"UNIT 90K (34).png\" \"UNIT 90K (34).jpg\" \"5ffaaa20-c9ed-45fb-b1e5-eb05d34aa6fd.jpeg\" public/",
+    "sync:public": "cp index.html about.html blog.html blog-post.html consulting.html partnerships.html contact.html admin.html style.css script.js \"UNIT 90K (28).png\" \"UNIT 90K (28).jpg\" \"UNIT 90K (29).png\" \"UNIT 90K (32).png\" \"UNIT 90K (34).png\" \"UNIT 90K (34).jpg\" \"5ffaaa20-c9ed-45fb-b1e5-eb05d34aa6fd.jpeg\" partners.jpg public/",
     "start": "node backend.js",
     "dev": "node --watch backend.js",
     "check": "node --check backend.js && node --check script.js"

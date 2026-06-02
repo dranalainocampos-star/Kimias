@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,600;0,800;1,800&amp;family=Unbounded:wght@700;800;900&amp;display=swap"
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,600;0,800;1,800&amp;display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="style.css" />
@@ -16,10 +16,13 @@
     <canvas id="paint-canvas"></canvas>
     <div id="cursor-dot"></div>
     <div class="mobile-nav" id="mobileNav">
-      <a href="/">Home</a><a href="/about">About Kimia</a>
-      <a href="/blog">Blog</a><a href="/consulting">Consulting</a>
-      <a href="/contact">Contact</a>
+      <a href="/" class="mobile-nav-link">Home</a>
+      <a href="/about" class="mobile-nav-link">About Kimia</a>
+      <a href="/blog" class="mobile-nav-link">Blog</a>
+      <a href="/consulting" class="mobile-nav-link">Consulting</a>
+      <a href="/partnerships" class="mobile-nav-link">Partnerships</a>
     </div>
+
     <header class="header" id="header">
       <div class="container nav-container">
         <a href="/" class="logo">
@@ -30,16 +33,13 @@
           />
           Kimia's Kravings<span>.</span>
         </a>
-
         <nav class="desktop-nav items-center">
           <a href="/" class="nav-link">Home</a>
           <a href="/about" class="nav-link">About Kimia</a>
           <a href="/blog" class="nav-link">Blog</a>
-          <a href="/consulting" class="nav-link">Consulting and Services</a>
-          <a
-            href="/contact"
-            class="btn-primary u-consulting-1"
-          >
+          <a href="/consulting" class="nav-link active">Consulting</a>
+          <a href="/partnerships" class="nav-link">Partnerships</a>
+          <a href="/contact" class="btn-primary nav-cta-compact">
             <span>Work With Kimia</span>
           </a>
         </nav>
@@ -58,22 +58,19 @@
           <div class="diabla-eyebrow u-consulting-2">
             Consulting &amp; Services
           </div>
-          <h1 class="cons-hero-title tracking-stark u-consulting-3 gsap-heading">
-            Build something<br />people<br /><span
-              class="u-consulting-4"
+          <h1
+            class="cons-hero-title tracking-stark u-consulting-3 gsap-heading"
+          >
+            Build something<br />people<br /><span class="u-consulting-4"
               >can't ignore.</span
             >
           </h1>
-          <p
-            class="u-consulting-5"
-          >
+          <p class="u-consulting-5">
             Kimia works directly with lifestyle, hospitality, and F&amp;B brands
             to build magnetic digital presences. Strategy-first.
             Execution-focused. Results that last.
           </p>
-          <div
-            class="u-consulting-6"
-          >
+          <div class="u-consulting-6">
             <a
               href="https://calendly.com/kimiakalbasi/30min?month=2022-12"
               class="btn-primary"
@@ -89,12 +86,8 @@
 
     <section class="services-section" id="services">
       <div class="container u-consulting-7">
-        <div class="diabla-eyebrow u-consulting-8">
-          Expertise Matrix
-        </div>
-        <h2
-          class="tracking-stark u-consulting-9 gsap-heading"
-        >
+        <div class="diabla-eyebrow u-consulting-8">Expertise Matrix</div>
+        <h2 class="tracking-stark u-consulting-9 gsap-heading">
           Four pillars of<br />brand transformation.
         </h2>
       </div>
@@ -129,7 +122,7 @@
               </p>
             </div>
           </div>
-          <a href="mailto:hi@KimiaKalbasi.com" class="card-action-btn">
+          <a href="/contact" class="card-action-btn">
             <span>Enquire</span>
             <svg class="icon"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
           </a>
@@ -164,7 +157,7 @@
               </p>
             </div>
           </div>
-          <a href="mailto:hi@KimiaKalbasi.com" class="card-action-btn">
+          <a href="/contact" class="card-action-btn">
             <span>Enquire</span>
             <svg class="icon"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
           </a>
@@ -199,7 +192,7 @@
               </p>
             </div>
           </div>
-          <a href="mailto:hi@KimiaKalbasi.com" class="card-action-btn">
+          <a href="/contact" class="card-action-btn">
             <span>Enquire</span>
             <svg class="icon"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
           </a>
@@ -233,7 +226,7 @@
               </p>
             </div>
           </div>
-          <a href="mailto:hi@KimiaKalbasi.com" class="card-action-btn">
+          <a href="/contact" class="card-action-btn">
             <span>Enquire</span>
             <svg class="icon"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
           </a>
@@ -244,12 +237,8 @@
     <section class="dna-section grid-surface">
       <div class="container">
         <div class="fade-up u-consulting-10">
-          <div class="diabla-eyebrow u-consulting-11">
-            Core Infrastructure
-          </div>
-          <h2
-            class="tracking-stark u-consulting-12 gsap-heading"
-          >
+          <div class="diabla-eyebrow u-consulting-11">Core Infrastructure</div>
+          <h2 class="tracking-stark u-consulting-12 gsap-heading">
             Brand Positioning &amp;<br />Strategy Blueprint
           </h2>
         </div>
@@ -323,12 +312,12 @@
       <div class="container">
         <div class="book-inner fade-up">
           <div>
-            <div
-              class="diabla-eyebrow u-consulting-13"
-            >
+            <div class="diabla-eyebrow u-consulting-13">
               Initiate Consultation
             </div>
-            <h2 class="book-title gsap-heading">Let's talk about<br />your brand.</h2>
+            <h2 class="book-title gsap-heading">
+              Let's talk about<br />your brand.
+            </h2>
             <p class="book-sub u-consulting-14">
               Reach out directly to outline your goals. Let's arrange an honest
               conversation regarding exactly where your brand sits today, and
@@ -344,9 +333,7 @@
               ><span>Book a Free Call</span>
               <svg class="icon"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
             </a>
-            <p
-              class="u-consulting-16"
-            ></p>
+            <p class="u-consulting-16"></p>
           </div>
         </div>
       </div>
@@ -357,9 +344,7 @@
         <div class="footer-grid">
           <div>
             <div class="footer-logo">Kimia's Kravings<span>.</span></div>
-            <p
-              class="u-consulting-17"
-            >
+            <p class="u-consulting-17">
               Exploring the convergence of taste, locations, and structural
               aesthetics.
             </p>
@@ -368,15 +353,16 @@
             <h4>Navigation</h4>
             <div class="footer-links">
               <a href="/">Home</a><a href="/about">About</a
-              ><a href="/blog">Blog</a
-              ><a href="/consulting">Consulting</a>
+              ><a href="/blog">Blog</a><a href="/consulting">Services</a>
+              <a href="/partnerships">Partnerships</a>
             </div>
           </div>
           <div class="footer-links-group">
             <h4>Social</h4>
             <div class="footer-links">
-              <a href="#">Instagram</a><a href="#">Pinterest</a
-              ><a href="#">YouTube</a><a href="#">LinkedIn</a>
+              <a href="https://www.instagram.com/kimiaskravings/">Instagram</a
+              ><a href="https://www.tiktok.com/@kimiaskravings">TikTok</a
+              ><a href="/contact">Contact</a>
             </div>
           </div>
         </div>

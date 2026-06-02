@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,600;0,800;1,800&amp;family=Unbounded:wght@700;800;900&amp;display=swap"
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,600;0,800;1,800&amp;display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="style.css" />
@@ -16,15 +16,12 @@
   <body class="page-index">
     <canvas id="paint-canvas"></canvas>
     <div id="cursor-dot"></div>
-
     <div class="mobile-nav" id="mobileNav">
       <a href="/" class="mobile-nav-link">Home</a>
       <a href="/about" class="mobile-nav-link">About Kimia</a>
       <a href="/blog" class="mobile-nav-link">Blog</a>
-      <a href="/consulting" class="mobile-nav-link"
-        >Consulting and Services</a
-      >
-      <a href="/contact" class="mobile-nav-link">Contact Kimia</a>
+      <a href="/consulting" class="mobile-nav-link">Consulting</a>
+      <a href="/partnerships" class="mobile-nav-link">Partnerships</a>
     </div>
 
     <header class="header" id="header">
@@ -37,12 +34,12 @@
           />
           Kimia's Kravings<span>.</span>
         </a>
-
         <nav class="desktop-nav items-center">
-          <a href="/" class="nav-link">Home</a>
+          <a href="/" class="nav-link active">Home</a>
           <a href="/about" class="nav-link">About Kimia</a>
           <a href="/blog" class="nav-link">Blog</a>
-          <a href="/consulting" class="nav-link">Consulting and Services</a>
+          <a href="/consulting" class="nav-link">Consulting</a>
+          <a href="/partnerships" class="nav-link">Partnerships</a>
           <a href="/contact" class="btn-primary nav-cta-compact">
             <span>Work With Kimia</span>
           </a>
@@ -74,7 +71,7 @@
           id="heroTitle"
         >
           Your ultimate<br />go-to Guide for<br />where to
-          <span class="text-accent">Eat</span>,<br /><span
+          <span class="text-accent">Eat,</span><br /><span
             class="text-accent text-accent-warm"
             >Drink</span
           >
@@ -230,7 +227,7 @@
       </div>
     </section>
 
-    <section class="featured-section grid-surface" id="blog">
+    <section class="featured-section" id="blog">
       <div class="container">
         <div class="flex items-center justify-between featured-header">
           <h2 class="tracking-stark section-title">Latest on the Blog</h2>
@@ -242,43 +239,13 @@
           id="homeBlogGrid"
           data-blog-grid
           data-blog-variant="home"
-          data-blog-batch="7"
-          data-blog-initial="7"
+          data-blog-batch="6"
+          data-blog-initial="6"
         ></div>
-
-        <aside class="blog-sidecar fade-up delay-100" aria-label="Blog highlights">
-          <div class="diabla-eyebrow">Kravings Radar</div>
-          <h3>Fresh finds, city notes, and tables worth planning around.</h3>
-          <div class="blog-sidecar-links">
-            <a href="/blog">
-              <span>01</span>
-              Latest Articles
-            </a>
-            <a href="/blog">
-              <span>02</span>
-              Food Guides
-            </a>
-            <a href="/blog">
-              <span>03</span>
-              Travel Notes
-            </a>
-          </div>
-        </aside>
-
-        <div class="blog-more-wrap">
-          <a href="/blog" class="btn-primary">
-            <span>View More Articles</span>
-            <svg
-              class="icon"
-              viewBox="0 0 24 24"
-              width="24"
-              height="24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path d="M5 12h14M12 5l7 7-7 7" />
-            </svg>
+        <div class="blog-view-all-wrap" id="blog-view-all">
+          <a href="/blog" class="btn-primary blog-view-all-link">
+            <span>View All</span>
+            <svg class="icon"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
           </a>
         </div>
       </div>
@@ -295,7 +262,7 @@
             </h2>
           </div>
           <a
-            href="https://instagram.com"
+            href="https://www.instagram.com/kimiaskravings/"
             target="_blank"
             class="nav-link text-red-link"
             >@kimias_kravings &rarr;</a
@@ -994,23 +961,23 @@
       <div class="container">
         <div class="book-inner fade-up">
           <div>
-            <div class="diabla-eyebrow book-eyebrow">Book a Discovery Call</div>
-            <h2 class="book-title">Let's talk about<br />your brand.</h2>
+            <h2 class="book-title">
+              Find the right support<br />for your brand.
+            </h2>
             <p class="book-sub book-sub-offset">
-              30-minute discovery call. No pitch. Just an honest conversation
-              about where your brand is and where it could go.
+              Tailored consulting, content direction, and partnership
+              opportunities designed to help brands connect with the right
+              audience.
             </p>
           </div>
           <div class="book-actions">
-            <a
-              href="https://calendly.com/kimiakalbasi/30min?month=2022-12"
-              class="btn-white"
-              target="_blank"
-              rel="noopener noreferrer"
-              ><span>Book a Free Call</span
+            <a href="/consulting" class="btn-white"
+              ><span>Explore Kimia's Services</span
               ><svg class="icon"><path d="M5 12h14M12 5l7 7-7 7" /></svg
             ></a>
-            <p class="book-note">Response within 24 hours.</p>
+            <p class="book-note">
+              Explore the service path before booking a call.
+            </p>
           </div>
         </div>
       </div>
@@ -1030,15 +997,16 @@
             <h4>Navigation</h4>
             <div class="footer-links">
               <a href="/">Home</a><a href="/about">About</a
-              ><a href="/blog">Blog</a
-              ><a href="/consulting">Consulting</a>
+              ><a href="/blog">Blog</a><a href="/consulting">Services</a>
+              <a href="/partnerships">Partnerships</a>
             </div>
           </div>
           <div class="footer-links-group">
             <h4>Social</h4>
             <div class="footer-links">
-              <a href="#">Instagram</a><a href="#">Pinterest</a
-              ><a href="#">YouTube</a><a href="#">LinkedIn</a>
+              <a href="https://www.instagram.com/kimiaskravings/">Instagram</a
+              ><a href="https://www.tiktok.com/@kimiaskravings">TikTok</a
+              ><a href="/contact">Contact</a>
             </div>
           </div>
         </div>

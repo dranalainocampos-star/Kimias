@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,600;0,800;1,800&amp;family=Unbounded:wght@700;800;900&amp;display=swap"
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,600;0,800;1,800&amp;display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="style.css" />
@@ -16,10 +16,13 @@
     <canvas id="paint-canvas"></canvas>
     <div id="cursor-dot"></div>
     <div class="mobile-nav" id="mobileNav">
-      <a href="/">Home</a><a href="/about">About Kimia</a>
-      <a href="/blog">Blog</a><a href="/consulting">Consulting</a>
-      <a href="/contact">Contact</a>
+      <a href="/" class="mobile-nav-link">Home</a>
+      <a href="/about" class="mobile-nav-link">About Kimia</a>
+      <a href="/blog" class="mobile-nav-link">Blog</a>
+      <a href="/consulting" class="mobile-nav-link">Consulting</a>
+      <a href="/partnerships" class="mobile-nav-link">Partnerships</a>
     </div>
+
     <header class="header" id="header">
       <div class="container nav-container">
         <a href="/" class="logo">
@@ -30,16 +33,13 @@
           />
           Kimia's Kravings<span>.</span>
         </a>
-
         <nav class="desktop-nav items-center">
           <a href="/" class="nav-link">Home</a>
           <a href="/about" class="nav-link">About Kimia</a>
-          <a href="/blog" class="nav-link">Blog</a>
-          <a href="/consulting" class="nav-link">Consulting and Services</a>
-          <a
-            href="/contact"
-            class="btn-primary u-blog-1"
-          >
+          <a href="/blog" class="nav-link active">Blog</a>
+          <a href="/consulting" class="nav-link">Consulting</a>
+          <a href="/partnerships" class="nav-link">Partnerships</a>
+          <a href="/contact" class="btn-primary nav-cta-compact">
             <span>Work With Kimia</span>
           </a>
         </nav>
@@ -55,17 +55,11 @@
     <section class="blog-hero grid-surface">
       <div class="container">
         <div class="fade-up">
-          <div class="diabla-eyebrow u-blog-2">
-            The Journal
-          </div>
-          <h1
-            class="tracking-stark u-blog-3 gsap-heading"
-          >
+          <div class="diabla-eyebrow u-blog-2">The Journal</div>
+          <h1 class="tracking-stark u-blog-3 gsap-heading">
             Latest<br /><span class="u-blog-4">Kravings.</span>
           </h1>
-          <p
-            class="u-blog-5"
-          >
+          <p class="u-blog-5">
             Food reviews, travel diaries, lifestyle essays, and everything in
             between. Unfiltered. Always first-hand.
           </p>
@@ -118,26 +112,19 @@
         ></div>
 
         <div class="load-more-wrap">
-          <button class="btn-primary load-more-btn" type="button" id="loadMorePosts">
+          <button
+            class="btn-primary load-more-btn"
+            type="button"
+            id="loadMorePosts"
+          >
             <span>Load More</span>
           </button>
         </div>
 
         <!-- No results message -->
-        <div
-          id="noResults"
-          class="u-blog-24"
-        >
-          <div
-            class="tracking-stark u-blog-25"
-          >
-            No Posts Found.
-          </div>
-          <p
-            class="u-blog-26"
-          >
-            Try a different keyword or category.
-          </p>
+        <div id="noResults" class="u-blog-24">
+          <div class="tracking-stark u-blog-25">No Posts Found.</div>
+          <p class="u-blog-26">Try a different keyword or category.</p>
         </div>
       </div>
     </section>
@@ -147,15 +134,11 @@
       <div class="container">
         <div class="nl-inner fade-up">
           <div>
-            <div
-              class="diabla-eyebrow u-blog-27"
-            >
-              Stay in the loop
-            </div>
-            <h2 class="nl-title gsap-heading">Never miss a<br /><span>Kraving.</span></h2>
-            <p
-              class="u-blog-28"
-            >
+            <div class="diabla-eyebrow u-blog-27">Stay in the loop</div>
+            <h2 class="nl-title gsap-heading">
+              Never miss a<br /><span>Kraving.</span>
+            </h2>
+            <p class="u-blog-28">
               Weekly drops — restaurant reviews, travel guides, and everything
               Kimia is obsessing over right now.
             </p>
@@ -165,11 +148,7 @@
               <input class="nl-input" type="email" placeholder="Your Email" />
               <button class="nl-btn">Subscribe</button>
             </div>
-            <p
-              class="u-blog-29"
-            >
-              No spam. Unsubscribe anytime.
-            </p>
+            <p class="u-blog-29">No spam. Unsubscribe anytime.</p>
           </div>
         </div>
       </div>
@@ -180,9 +159,7 @@
         <div class="footer-grid">
           <div>
             <div class="footer-logo">Kimia's Kravings<span>.</span></div>
-            <p
-              class="u-blog-30"
-            >
+            <p class="u-blog-30">
               Exploring the convergence of taste, locations, and structural
               aesthetics.
             </p>
@@ -191,15 +168,16 @@
             <h4>Navigation</h4>
             <div class="footer-links">
               <a href="/">Home</a><a href="/about">About</a>
-              <a href="/blog">Blog</a
-              ><a href="/consulting">Consulting</a>
+              <a href="/blog">Blog</a><a href="/consulting">Services</a>
+              <a href="/partnerships">Partnerships</a>
             </div>
           </div>
           <div class="footer-links-group">
             <h4>Social</h4>
             <div class="footer-links">
-              <a href="#">Instagram</a><a href="#">Pinterest</a>
-              <a href="#">YouTube</a><a href="#">LinkedIn</a>
+              <a href="https://www.instagram.com/kimiaskravings/">Instagram</a
+              ><a href="https://www.tiktok.com/@kimiaskravings">TikTok</a
+              ><a href="/contact">Contact</a>
             </div>
           </div>
         </div>

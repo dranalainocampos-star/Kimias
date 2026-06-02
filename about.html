@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,600;0,800;1,800&amp;family=Unbounded:wght@700;800;900&amp;display=swap"
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,600;0,800;1,800&amp;display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="style.css" />
@@ -15,11 +15,12 @@
   <body class="page-about">
     <canvas id="paint-canvas"></canvas>
     <div id="cursor-dot"></div>
-
     <div class="mobile-nav" id="mobileNav">
-      <a href="/">Home</a><a href="/about">About Kimia</a>
-      <a href="/blog">Blog</a><a href="/consulting">Consulting</a>
-      <a href="/contact">Contact</a>
+      <a href="/" class="mobile-nav-link">Home</a>
+      <a href="/about" class="mobile-nav-link">About Kimia</a>
+      <a href="/blog" class="mobile-nav-link">Blog</a>
+      <a href="/consulting" class="mobile-nav-link">Consulting</a>
+      <a href="/partnerships" class="mobile-nav-link">Partnerships</a>
     </div>
 
     <header class="header" id="header">
@@ -32,16 +33,13 @@
           />
           Kimia's Kravings<span>.</span>
         </a>
-
         <nav class="desktop-nav items-center">
           <a href="/" class="nav-link">Home</a>
           <a href="/about" class="nav-link active">About Kimia</a>
           <a href="/blog" class="nav-link">Blog</a>
-          <a href="/consulting" class="nav-link">Consulting and Services</a>
-          <a
-            href="/contact"
-            class="btn-primary u-about-1"
-          >
+          <a href="/consulting" class="nav-link">Consulting</a>
+          <a href="/partnerships" class="nav-link">Partnerships</a>
+          <a href="/contact" class="btn-primary nav-cta-compact">
             <span>Work With Kimia</span>
           </a>
         </nav>
@@ -61,31 +59,26 @@
             <div class="page-hero-label">
               <span class="page-hero-dot"></span>
             </div>
-            <h1 class="page-hero-title tracking-stark leading-tight gsap-heading">
-              The woman<br />behind the<br /><span
-                class="u-about-2"
+            <h1
+              class="page-hero-title tracking-stark leading-tight gsap-heading"
+            >
+              The woman<br />behind the<br /><span class="u-about-2"
                 >Kravings.</span
               >
             </h1>
 
-            <p
-              class="u-about-3"
-            >
+            <p class="u-about-3">
               San Francisco-based food, travel, and lifestyle blogger turned
               brand consultant. 76K+ followers. 38 cities. One mission: find the
               best of everything.
             </p>
-            <p
-              class="u-about-4"
-            >
+            <p class="u-about-4">
               Born in LA, raised in OC, schooled in SB, worked and lived in NYC
               and now SF, Kimia is a content creator and writer who specializes
               in food, travel, and lifestyle. She’s one of the top digital
               marketing experts on the Growth Collective platform.
             </p>
-            <p
-              class="u-about-5"
-            >
+            <p class="u-about-5">
               Trusted guide for discovering the best places to explore, dine,
               and unwind — from hidden culinary gems and stylish boutiques to
               sophisticated rooftop lounges and scenic beach destinations.
@@ -173,16 +166,10 @@
 
     <section class="does-section grid-surface">
       <div class="container">
-        <div
-          class="u-about-13"
-        >
+        <div class="u-about-13">
           <div>
-            <div class="diabla-eyebrow u-about-14">
-              What She Does
-            </div>
-            <h2
-              class="tracking-stark u-about-15 gsap-heading"
-            >
+            <div class="diabla-eyebrow u-about-14">What She Does</div>
+            <h2 class="tracking-stark u-about-15 gsap-heading">
               work<br />with Kimia.
             </h2>
           </div>
@@ -232,12 +219,10 @@
       <div class="container">
         <div class="cta-band-inner fade-up">
           <div>
-            <div
-              class="diabla-eyebrow u-about-16"
+            <div class="diabla-eyebrow u-about-16">Let's Build Together</div>
+            <h2
+              class="cta-band-title tracking-stark leading-tight gsap-heading"
             >
-              Let's Build Together
-            </div>
-            <h2 class="cta-band-title tracking-stark leading-tight gsap-heading">
               work<br />with Kimia
             </h2>
             <p class="cta-band-sub u-about-17">
@@ -251,9 +236,7 @@
               ><span>View Services</span
               ><svg class="icon"><path d="M5 12h14M12 5l7 7-7 7" /></svg
             ></a>
-            <a
-              href="/contact"
-              class="btn-outline u-about-18"
+            <a href="/contact" class="btn-outline u-about-18"
               ><span>Contact</span></a
             >
           </div>
@@ -266,9 +249,7 @@
         <div class="footer-grid">
           <div>
             <div class="footer-logo">Kimia's Kravings<span>.</span></div>
-            <p
-              class="u-about-19"
-            >
+            <p class="u-about-19">
               Exploring the convergence of taste, locations, and structural
               aesthetics.
             </p>
@@ -277,15 +258,16 @@
             <h4>Navigation</h4>
             <div class="footer-links">
               <a href="/">Home</a><a href="/about">About</a>
-              <a href="/blog">Blog</a
-              ><a href="/consulting">Consulting</a>
+              <a href="/blog">Blog</a><a href="/consulting">Services</a>
+              <a href="/partnerships">Partnerships</a>
             </div>
           </div>
           <div class="footer-links-group">
             <h4>Social</h4>
             <div class="footer-links">
-              <a href="#">Instagram</a><a href="#">Pinterest</a>
-              <a href="#">YouTube</a><a href="#">LinkedIn</a>
+              <a href="https://www.instagram.com/kimiaskravings/">Instagram</a
+              ><a href="https://www.tiktok.com/@kimiaskravings">TikTok</a
+              ><a href="/contact">Contact</a>
             </div>
           </div>
         </div>

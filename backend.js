@@ -115,6 +115,7 @@ db.exec(`
     location TEXT NOT NULL DEFAULT '',
     category_color TEXT NOT NULL DEFAULT 'sand',
     image TEXT NOT NULL DEFAULT '',
+    supporting_images TEXT NOT NULL DEFAULT '[]',
     slug TEXT NOT NULL UNIQUE,
     content TEXT NOT NULL DEFAULT '',
     excerpt TEXT NOT NULL DEFAULT '',
@@ -153,6 +154,9 @@ const postColumns = db.prepare("PRAGMA table_info(posts)").all();
 if (!postColumns.some((column) => column.name === "content")) {
   db.exec("ALTER TABLE posts ADD COLUMN content TEXT NOT NULL DEFAULT ''");
 }
+if (!postColumns.some((column) => column.name === "supporting_images")) {
+  db.exec("ALTER TABLE posts ADD COLUMN supporting_images TEXT NOT NULL DEFAULT '[]'");
+}
 db.exec("UPDATE posts SET content = excerpt WHERE content = ''");
 
 const insertSeedPost = db.prepare(`
@@ -167,6 +171,30 @@ const seedMissingPosts = db.transaction((posts) =>
 );
 seedMissingPosts(seedPosts);
 
+function normalizeImageList(value) {
+  let images = value;
+
+  if (typeof images === "string") {
+    const trimmed = images.trim();
+    if (!trimmed) images = [];
+    else {
+      try {
+        images = JSON.parse(trimmed);
+      } catch {
+        images = trimmed.split(/\r?\n|,/);
+      }
+    }
+  }
+
+  if (!Array.isArray(images)) return [];
+
+  return [...new Set(images.map((image) => String(image || "").trim()).filter(Boolean))];
+}
+
+function parseImageList(value) {
+  return normalizeImageList(value);
+}
+
 function toPost(row) {
   return {
     id: row.id,
@@ -175,6 +203,7 @@ function toPost(row) {
     location: row.location,
     categoryColor: row.category_color,
     image: row.image,
+    supportingImages: parseImageList(row.supporting_images),
     slug: row.slug,
     content: row.content || row.excerpt,
     excerpt: row.excerpt,
@@ -233,6 +262,9 @@ function postPayload(body) {
     location: String(body.location || category).trim(),
     categoryColor: String(body.categoryColor || "sand").trim(),
     image: String(body.image || seedPosts[0].image).trim(),
+    supportingImages: normalizeImageList(
+      body.supportingImages ?? body.supporting_images ?? body.galleryImages ?? body.gallery_images,
+    ),
     slug: String(body.slug || slugify(title)).trim(),
     content,
     excerpt: String(body.excerpt || content).trim(),
@@ -271,6 +303,7 @@ const cleanRouteRedirects = {
   "/blog.html": "/blog",
   "/about.html": "/about",
   "/consulting.html": "/consulting",
+  "/partnerships.html": "/partnerships",
   "/contact.html": "/contact",
 };
 
@@ -287,6 +320,7 @@ const pageRoutes = {
   "/blog": "blog.html",
   "/about": "about.html",
   "/consulting": "consulting.html",
+  "/partnerships": "partnerships.html",
   "/contact": "contact.html",
 };
 
@@ -414,12 +448,12 @@ app.post("/api/posts", requireAdmin, (req, res, next) => {
     const result = db
       .prepare(
         `INSERT INTO posts (
-          title, category, location, category_color, image, slug, content, excerpt, published_at, status
+          title, category, location, category_color, image, supporting_images, slug, content, excerpt, published_at, status
         ) VALUES (
-          @title, @category, @location, @categoryColor, @image, @slug, @content, @excerpt, @publishedAt, @status
+          @title, @category, @location, @categoryColor, @image, @supportingImagesJson, @slug, @content, @excerpt, @publishedAt, @status
         )`,
       )
-      .run(payload);
+      .run({ ...payload, supportingImagesJson: JSON.stringify(payload.supportingImages) });
     const row = db.prepare("SELECT * FROM posts WHERE id = ?").get(result.lastInsertRowid);
     res.status(201).json({ post: toPost(row) });
   } catch (error) {
@@ -445,6 +479,7 @@ app.put("/api/posts/:id", requireAdmin, (req, res, next) => {
            location = @location,
            category_color = @categoryColor,
            image = @image,
+           supporting_images = @supportingImagesJson,
            slug = @slug,
            content = @content,
            excerpt = @excerpt,
@@ -452,7 +487,7 @@ app.put("/api/posts/:id", requireAdmin, (req, res, next) => {
            status = @status,
            updated_at = CURRENT_TIMESTAMP
        WHERE id = @id`,
-    ).run({ ...payload, id });
+    ).run({ ...payload, supportingImagesJson: JSON.stringify(payload.supportingImages), id });
     const row = db.prepare("SELECT * FROM posts WHERE id = ?").get(id);
     res.json({ post: toPost(row) });
   } catch (error) {

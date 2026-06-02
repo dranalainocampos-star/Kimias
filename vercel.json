@@ -78,6 +78,13 @@
       }
     },
     {
+      "src": "/partnerships\\.html",
+      "status": 308,
+      "headers": {
+        "Location": "/partnerships"
+      }
+    },
+    {
       "src": "/contact\\.html",
       "status": 308,
       "headers": {
@@ -111,6 +118,10 @@
     {
       "src": "/consulting",
       "dest": "/consulting.html"
+    },
+    {
+      "src": "/partnerships",
+      "dest": "/partnerships.html"
     },
     {
       "src": "/contact",
