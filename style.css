@@ -4703,6 +4703,71 @@ img {
 .nl-btn:hover {
   background: var(--diabla-orange);
 }
+.nl-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.68;
+}
+.newsletter-status {
+  min-height: 1.35rem;
+  margin-top: 0.8rem;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1.35;
+  text-transform: uppercase;
+  color: rgba(27, 42, 65, 0.72);
+}
+.newsletter-status:empty {
+  visibility: hidden;
+}
+.newsletter-status.is-success {
+  color: var(--diabla-anthracite);
+}
+.newsletter-status.is-error {
+  color: var(--diabla-red);
+}
+.newsletter-invite {
+  max-width: 31rem;
+  margin-top: 0.95rem;
+  color: rgba(27, 42, 65, 0.72);
+  font-size: 15px;
+  line-height: 1.55;
+}
+.newsletter-modal-overlay {
+  z-index: 260;
+}
+.newsletter-modal {
+  max-width: 520px;
+}
+.newsletter-modal-header {
+  background: var(--diabla-red);
+  color: var(--diabla-white);
+}
+.newsletter-modal-header .diabla-eyebrow,
+.newsletter-modal-header .modal-close {
+  color: var(--diabla-white);
+}
+.newsletter-modal-body {
+  color: var(--diabla-anthracite);
+}
+.newsletter-modal-title {
+  margin: 0;
+  font-size: clamp(34px, 5vw, 54px);
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 0.9;
+  text-transform: uppercase;
+}
+.newsletter-modal-body p {
+  max-width: 26rem;
+  margin: 1rem 0 0;
+  color: var(--diabla-muted);
+  font-size: 15px;
+  line-height: 1.65;
+}
+.newsletter-modal-action {
+  margin-top: 1.75rem;
+}
 
 /* FOOTER */
 .footer {
@@ -4946,15 +5011,6 @@ img {
   max-width: 28rem;
   margin-top: 1rem;
   line-height: 1.7;
-}
-
-.u-blog-29 {
-  color: rgba(255, 255, 255, 0.3);
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  margin-top: 0.75rem;
 }
 
 .u-blog-30 {
@@ -12024,4 +12080,36 @@ body.page-contact {
 
 #cursor-dot.on-red-surface.hover::after {
   background: var(--crimson-red, #c5283d) !important;
+}
+
+/* Crimson consulting hero emphasis. */
+.page-consulting .cons-hero {
+  background: var(--crimson-red, #c5283d) !important;
+  color: var(--diabla-white, #f8f9fb) !important;
+}
+
+.page-consulting .cons-hero .diabla-eyebrow,
+.page-consulting .cons-hero .cons-hero-title,
+.page-consulting .cons-hero .u-consulting-4,
+.page-consulting .cons-hero .u-consulting-5 {
+  color: var(--diabla-white, #f8f9fb) !important;
+}
+
+.page-consulting .cons-hero .u-consulting-5 {
+  color: rgba(248, 249, 251, 0.86) !important;
+}
+
+.page-consulting .cons-hero .btn-primary {
+  background: var(--diabla-white, #f8f9fb) !important;
+  color: var(--diabla-anthracite, #1b2a41) !important;
+  box-shadow: none !important;
+}
+
+.page-consulting .cons-hero .btn-primary::before {
+  background: var(--diabla-anthracite, #1b2a41) !important;
+}
+
+.page-consulting .cons-hero .btn-primary:hover {
+  color: var(--diabla-white, #f8f9fb) !important;
+  box-shadow: 0 12px 30px rgba(27, 42, 65, 0.22) !important;
 }

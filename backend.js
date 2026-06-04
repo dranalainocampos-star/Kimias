@@ -184,6 +184,15 @@ db.exec(`
     status TEXT NOT NULL DEFAULT 'Unread',
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
   );
+
+  CREATE TABLE IF NOT EXISTS newsletter_subscribers (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT NOT NULL UNIQUE,
+    source TEXT NOT NULL DEFAULT 'blog',
+    status TEXT NOT NULL DEFAULT 'Subscribed',
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );
 `);
 
 const postColumns = db.prepare("PRAGMA table_info(posts)").all();
@@ -312,6 +321,10 @@ function postPayload(body) {
         : publishedAtInput,
     status: String(body.status || "Draft").trim(),
   };
+}
+
+function isValidEmail(value = "") {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value).trim());
 }
 
 const app = express();
@@ -663,6 +676,33 @@ app.post("/api/contacts", (req, res) => {
   res.status(201).json({ id: result.lastInsertRowid, ok: true });
 });
 
+app.post("/api/newsletter", (req, res, next) => {
+  try {
+    const email = String(req.body.email || "").trim().toLowerCase();
+    const source = String(req.body.source || "blog").trim() || "blog";
+
+    if (!isValidEmail(email)) {
+      return res.status(400).json({ error: "Enter a valid email address." });
+    }
+
+    db.prepare(
+      `INSERT INTO newsletter_subscribers (email, source, status)
+       VALUES (@email, @source, 'Subscribed')
+       ON CONFLICT(email) DO UPDATE SET
+         source = excluded.source,
+         status = 'Subscribed',
+         updated_at = CURRENT_TIMESTAMP`,
+    ).run({ email, source });
+
+    res.status(201).json({
+      ok: true,
+      message: "You are on the list.",
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.get("/api/admin/messages", requireAdmin, (req, res) => {
   const messages = db
     .prepare("SELECT * FROM contacts ORDER BY id DESC")
@@ -677,6 +717,21 @@ app.get("/api/admin/messages", requireAdmin, (req, res) => {
       unread: row.status === "Unread",
     }));
   res.json({ messages });
+});
+
+app.get("/api/admin/newsletter", requireAdmin, (req, res) => {
+  const subscribers = db
+    .prepare("SELECT * FROM newsletter_subscribers ORDER BY id DESC")
+    .all()
+    .map((row) => ({
+      id: row.id,
+      email: row.email,
+      source: row.source,
+      status: row.status,
+      date: row.created_at,
+      updatedAt: row.updated_at,
+    }));
+  res.json({ subscribers });
 });
 
 app.use(express.static(__dirname));

@@ -70,6 +70,10 @@
             <span class="nav-icon">✉️</span> Messages
             <span class="nav-badge" id="badge-messages">0</span>
           </div>
+          <div class="nav-item" data-panel="subscribers">
+            <span class="nav-icon">@</span> Subscribers
+            <span class="nav-badge" id="badge-subscribers">0</span>
+          </div>
         </nav>
 
         <div class="sidebar-footer">
@@ -111,6 +115,11 @@
               <div class="s-label">Pending Comments</div>
               <div class="s-num" id="stat-pendingComm">0</div>
               <div class="s-sub u-admin-3">Awaiting Moderation</div>
+            </div>
+            <div class="stat-card">
+              <div class="s-label">Newsletter Subscribers</div>
+              <div class="s-num" id="stat-subscribers">0</div>
+              <div class="s-sub">Email list growth</div>
             </div>
           </div>
 
@@ -228,6 +237,27 @@
                   protocols.
                 </p>
               </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="panel-subscribers" class="panel">
+          <div class="card">
+            <div class="card-title">
+              <span>Newsletter Subscriber List</span>
+            </div>
+            <div class="table-responsive">
+              <table class="posts-table subscribers-table">
+                <thead>
+                  <tr>
+                    <th>Email</th>
+                    <th>Source</th>
+                    <th>Status</th>
+                    <th>Signup Date</th>
+                  </tr>
+                </thead>
+                <tbody id="subscribersTableBody"></tbody>
+              </table>
             </div>
           </div>
         </section>

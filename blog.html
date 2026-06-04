@@ -144,15 +144,71 @@
             </p>
           </div>
           <div>
-            <div class="nl-form">
-              <input class="nl-input" type="email" placeholder="Your Email" />
-              <button class="nl-btn">Subscribe</button>
-            </div>
-            <p class="u-blog-29">No spam. Unsubscribe anytime.</p>
+            <form class="nl-form" id="newsletterForm" data-newsletter-form novalidate>
+              <input
+                class="nl-input"
+                id="newsletterEmail"
+                name="email"
+                type="email"
+                placeholder="Your Email"
+                autocomplete="email"
+                required
+              />
+              <button class="nl-btn" type="submit">Subscribe</button>
+            </form>
+            <p
+              class="newsletter-status"
+              id="newsletterStatus"
+              role="status"
+              aria-live="polite"
+            ></p>
+            <p class="newsletter-invite">
+              Join Kimia's inner circle for fresh finds, city guides, and
+              cravings worth planning your week around.
+            </p>
           </div>
         </div>
       </div>
     </section>
+
+    <div
+      class="modal-overlay newsletter-modal-overlay"
+      id="newsletterModal"
+      role="dialog"
+      aria-modal="true"
+      aria-hidden="true"
+      aria-labelledby="newsletterModalTitle"
+    >
+      <div class="modal newsletter-modal" role="document">
+        <div class="modal-header newsletter-modal-header">
+          <span class="diabla-eyebrow">You're in</span>
+          <button
+            class="modal-close"
+            type="button"
+            data-newsletter-modal-close
+            aria-label="Close newsletter confirmation"
+          >
+            ×
+          </button>
+        </div>
+        <div class="modal-body newsletter-modal-body">
+          <h2 class="newsletter-modal-title" id="newsletterModalTitle">
+            You're on the list.
+          </h2>
+          <p>
+            Fresh Kravings will land in your inbox when Kimia publishes
+            something worth sharing.
+          </p>
+          <button
+            class="nl-btn newsletter-modal-action"
+            type="button"
+            data-newsletter-modal-close
+          >
+            Continue Reading
+          </button>
+        </div>
+      </div>
+    </div>
 
     <footer class="footer">
       <div class="container">

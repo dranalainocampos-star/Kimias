@@ -572,7 +572,7 @@ function initPaintCursor() {
   const hoverSelector =
     "a, button, .btn, .card, .post-card, .does-item, .service-card, .dna-cell, .nav-item, .logout-btn, .login-btn, .filter-tab";
   const redSurfaceSelector =
-    ".book-section, .featured-in, .cta-band, .partnership-cta, .page-contact .channels-card";
+    ".book-section, .featured-in, .cta-band, .partnership-cta, .page-contact .channels-card, .page-consulting .cons-hero";
 
   document.addEventListener("mousemove", (event) => {
     const target = event.target instanceof Element ? event.target : null;
@@ -1314,6 +1314,101 @@ function initContactForm() {
   form.addEventListener("submit", dispatchFormPayload);
 }
 
+function isValidEmailAddress(value = "") {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value).trim());
+}
+
+function setNewsletterStatus(element, message = "", type = "") {
+  if (!element) return;
+  element.textContent = message;
+  element.className = `newsletter-status${type ? ` is-${type}` : ""}`;
+}
+
+function openNewsletterModal() {
+  const modal = document.getElementById("newsletterModal");
+  if (!modal) return false;
+
+  modal.classList.add("open");
+  modal.setAttribute("aria-hidden", "false");
+  modal.querySelector("[data-newsletter-modal-close]")?.focus();
+  return true;
+}
+
+function closeNewsletterModal() {
+  const modal = document.getElementById("newsletterModal");
+  if (!modal) return;
+
+  modal.classList.remove("open");
+  modal.setAttribute("aria-hidden", "true");
+}
+
+function initNewsletterModal() {
+  const modal = document.getElementById("newsletterModal");
+  if (!modal) return;
+
+  modal.querySelectorAll("[data-newsletter-modal-close]").forEach((button) => {
+    button.addEventListener("click", closeNewsletterModal);
+  });
+
+  modal.addEventListener("click", (event) => {
+    if (event.target === modal) closeNewsletterModal();
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && modal.classList.contains("open")) {
+      closeNewsletterModal();
+    }
+  });
+}
+
+function initNewsletterForm() {
+  const form = document.querySelector("[data-newsletter-form]");
+  if (!form) return;
+
+  const input = form.querySelector('input[type="email"]');
+  const button = form.querySelector('button[type="submit"]');
+  const status = document.getElementById("newsletterStatus");
+  const defaultButtonText = button?.textContent || "Subscribe";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const email = String(input?.value || "").trim();
+    if (!isValidEmailAddress(email)) {
+      input?.setAttribute("aria-invalid", "true");
+      setNewsletterStatus(status, "Enter a valid email address.", "error");
+      input?.focus();
+      return;
+    }
+
+    input?.setAttribute("aria-invalid", "false");
+    setNewsletterStatus(status, "Adding you to the list...", "");
+    if (button) {
+      button.disabled = true;
+      button.textContent = "Joining...";
+    }
+
+    try {
+      const payload = await apiRequest("/newsletter", {
+        method: "POST",
+        body: JSON.stringify({ email, source: "blog" }),
+      });
+      form.reset();
+      setNewsletterStatus(status, "", "");
+      if (!openNewsletterModal()) {
+        setNewsletterStatus(status, payload.message || "You are on the list.", "success");
+      }
+    } catch (error) {
+      setNewsletterStatus(status, error.message || "Subscription failed.", "error");
+    } finally {
+      if (button) {
+        button.disabled = false;
+        button.textContent = defaultButtonText;
+      }
+    }
+  });
+}
+
 function getPostContentEditor() {
   return document.getElementById("postContentEditor");
 }
@@ -1606,6 +1701,8 @@ window.addEventListener("DOMContentLoaded", async () => {
   initCardTilt();
   initLazySocialEmbeds();
   initContactForm();
+  initNewsletterModal();
+  initNewsletterForm();
   initAdminBindings();
 
   await initialDataPromise;
@@ -1676,6 +1773,7 @@ let posts = blogData.map((post) => ({
 let comments = [];
 let consultingRequests = [];
 let messages = [];
+let subscribers = [];
 let activities = [];
 
 // ── APPLICATION ENTRY VALIDATION CONTEXT ──
@@ -1759,15 +1857,30 @@ async function loadAdminComments() {
   }
 }
 
+async function loadAdminSubscribers() {
+  try {
+    const payload = await apiRequest("/admin/newsletter", {
+      headers: { "x-admin-token": getAdminToken() },
+    });
+    if (Array.isArray(payload.subscribers)) {
+      subscribers = payload.subscribers;
+    }
+  } catch (error) {
+    console.warn("Unable to load newsletter subscribers:", error.message);
+    subscribers = [];
+  }
+}
+
 // ── ENGINE INITIALIZATION PROCEDURES ──
 async function initializeApplicationCore() {
-  await Promise.all([loadAdminMessages(), loadAdminComments()]);
+  await Promise.all([loadAdminMessages(), loadAdminComments(), loadAdminSubscribers()]);
   updateBadges();
   renderDashboardActivities();
   renderBlogPosts("all");
   renderComments();
   renderConsultingTable();
   renderMessagesList();
+  renderSubscribersTable();
 }
 
 function updateBadges() {
@@ -1780,6 +1893,8 @@ function updateBadges() {
   document.getElementById("badge-comments").textContent = pComm;
   document.getElementById("badge-consulting").textContent = pConsult;
   document.getElementById("badge-messages").textContent = uMsg;
+  const subscriberBadge = document.getElementById("badge-subscribers");
+  if (subscriberBadge) subscriberBadge.textContent = subscribers.length;
 
   // Sync parameters to dashboard analytical summaries
   document.getElementById("stat-publishedPosts").textContent = posts.filter(
@@ -1789,6 +1904,8 @@ function updateBadges() {
   document.getElementById("stat-pendingComm").textContent = pComm;
   document.getElementById("stat-bookings").textContent =
     consultingRequests.length;
+  const subscriberStat = document.getElementById("stat-subscribers");
+  if (subscriberStat) subscriberStat.textContent = subscribers.length;
   activities = buildRealActivities();
 }
 
@@ -1811,6 +1928,7 @@ function switchPanel(panelId, element) {
     comments: "Commentary <em>Moderation Queue</em>",
     consulting: "Consulting <em>Operations Hub</em>",
     messages: "Inbound <em>Message Vault</em>",
+    subscribers: "Newsletter <em>Subscribers</em>",
   };
   document.getElementById("panelTitle").innerHTML =
     titleMap[panelId] || "Admin Matrix";
@@ -1856,7 +1974,13 @@ function buildRealActivities() {
     time: message.date || "No timestamp",
   }));
 
-  return [...recentMessages, ...recentPosts].slice(0, 6);
+  const recentSubscribers = subscribers.slice(0, 3).map((subscriber) => ({
+    type: "Newsletter Subscriber",
+    desc: subscriber.email,
+    time: subscriber.date || "No timestamp",
+  }));
+
+  return [...recentSubscribers, ...recentMessages, ...recentPosts].slice(0, 6);
 }
 
 function renderBlogPosts(filter = "all") {
@@ -2453,6 +2577,33 @@ function approveConsulting(id) {
   renderConsultingTable();
   updateBadges();
   showToast("Consulting strategy parameters activated.");
+}
+
+function renderSubscribersTable() {
+  const body = document.getElementById("subscribersTableBody");
+  if (!body) return;
+
+  if (!subscribers.length) {
+    body.innerHTML = `
+      <tr>
+        <td colspan="4" class="admin-table-desc">No newsletter subscribers yet.</td>
+      </tr>
+    `;
+    return;
+  }
+
+  body.innerHTML = subscribers
+    .map(
+      (subscriber) => `
+        <tr>
+          <td class="subscriber-email">${escapeHTML(subscriber.email)}</td>
+          <td class="admin-table-category">${escapeHTML(subscriber.source || "blog")}</td>
+          <td><span class="status-badge status-published">${escapeHTML(subscriber.status || "Subscribed")}</span></td>
+          <td class="admin-table-muted-medium">${escapeHTML(subscriber.date || "")}</td>
+        </tr>
+      `,
+    )
+    .join("");
 }
 
 // ── MESSAGE PROTOCOLS ──
