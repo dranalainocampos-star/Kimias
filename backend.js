@@ -1,4 +1,5 @@
 import Database from "better-sqlite3";
+import compression from "compression";
 import express from "express";
 import { put } from "@vercel/blob";
 import helmet from "helmet";
@@ -328,6 +329,7 @@ function isValidEmail(value = "") {
 }
 
 const app = express();
+const STATIC_ASSET_PATTERN = /\.(?:css|js|png|jpe?g|jpeg|gif|webp|svg|ico|woff2?)$/i;
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
@@ -347,8 +349,15 @@ app.use(
     contentSecurityPolicy: false,
   }),
 );
+app.use(compression());
 app.use(express.json({ limit: "1mb" }));
-app.use("/uploads", express.static(UPLOADS_DIR));
+app.use(
+  "/uploads",
+  express.static(UPLOADS_DIR, {
+    immutable: true,
+    maxAge: "30d",
+  }),
+);
 
 const cleanRouteRedirects = {
   "/index.html": "/",
@@ -404,6 +413,9 @@ app.get("/api/posts", (req, res) => {
   const status = String(req.query.status || "").trim();
   const category = String(req.query.category || "").trim().toLowerCase();
   const search = String(req.query.search || "").trim().toLowerCase();
+  const summary = ["1", "true", "yes"].includes(
+    String(req.query.summary || "").trim().toLowerCase(),
+  );
   const params = {};
   const where = [];
 
@@ -423,11 +435,23 @@ app.get("/api/posts", (req, res) => {
   }
 
   const sql = `
-    SELECT * FROM posts
+    SELECT ${
+      summary
+        ? "id, title, category, location, category_color, image, slug, excerpt, published_at, status, created_at, updated_at"
+        : "*"
+    } FROM posts
     ${where.length ? `WHERE ${where.join(" AND ")}` : ""}
     ORDER BY id DESC
   `;
-  res.json({ posts: db.prepare(sql).all(params).map(toPost) });
+  const posts = db.prepare(sql).all(params).map((row) => {
+    const post = toPost(row);
+    if (summary) {
+      delete post.content;
+      delete post.supportingImages;
+    }
+    return post;
+  });
+  res.json({ posts });
 });
 
 app.get("/api/posts/:slug", (req, res) => {
@@ -734,7 +758,21 @@ app.get("/api/admin/newsletter", requireAdmin, (req, res) => {
   res.json({ subscribers });
 });
 
-app.use(express.static(__dirname));
+app.use(
+  express.static(__dirname, {
+    maxAge: "1h",
+    setHeaders(res, filePath) {
+      if (filePath.endsWith(".html")) {
+        res.setHeader("Cache-Control", "no-cache");
+        return;
+      }
+
+      if (STATIC_ASSET_PATTERN.test(filePath)) {
+        res.setHeader("Cache-Control", "public, max-age=3600");
+      }
+    },
+  }),
+);
 
 app.use((error, req, res, next) => {
   if (error.code === "SQLITE_CONSTRAINT_UNIQUE") {

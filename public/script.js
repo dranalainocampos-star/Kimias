@@ -480,6 +480,15 @@ function getAdminToken() {
   return localStorage.getItem("kimiaAdminToken") || "";
 }
 
+function runWhenIdle(callback, timeout = 1200) {
+  if ("requestIdleCallback" in window) {
+    window.requestIdleCallback(callback, { timeout });
+    return;
+  }
+
+  window.setTimeout(callback, 1);
+}
+
 async function apiRequest(path, options = {}) {
   const headers = {
     "Content-Type": "application/json",
@@ -507,7 +516,8 @@ async function apiRequest(path, options = {}) {
 
 async function loadInitialData() {
   try {
-    const payload = await apiRequest("/posts");
+    const isAdminPage = document.body.classList.contains("page-admin");
+    const payload = await apiRequest(isAdminPage ? "/posts" : "/posts?summary=1");
     if (Array.isArray(payload.posts) && payload.posts.length) {
       const shouldPadHomeFeatured = document.body.classList.contains("page-index");
       blogData = payload.posts.map((post) => ({ ...post }));
@@ -1696,20 +1706,23 @@ window.addEventListener("DOMContentLoaded", async () => {
   initPaintCursor();
   initHeaderAndMenu();
   initFadeUp();
-  initCountUp();
   initGridSurfaces();
-  initCardTilt();
   initLazySocialEmbeds();
   initContactForm();
   initNewsletterModal();
   initNewsletterForm();
   initAdminBindings();
 
+  runWhenIdle(() => {
+    initCountUp();
+    initCardTilt();
+  });
+
   await initialDataPromise;
   initBlogPagination();
   await initSinglePostPage();
   initBlogFilters();
-  initGsapEnhancements();
+  runWhenIdle(initGsapEnhancements, 1800);
 });
 
 async function dispatchFormPayload(event) {
