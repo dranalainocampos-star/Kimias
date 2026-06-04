@@ -187,6 +187,287 @@ function escapeHTML(value = "") {
   });
 }
 
+function parsePostTimestamp(value = "") {
+  const raw = String(value || "").trim();
+  if (!raw) return null;
+
+  const isTimestamp =
+    /^\d{4}-\d{2}-\d{2}(?:[T\s]\d{2}:\d{2}(?::\d{2})?(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?)?$/.test(raw);
+  if (!isTimestamp) return null;
+
+  const isSQLiteTimestamp = /^\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}/.test(raw);
+  const hasExplicitTimezone = /(?:Z|[+-]\d{2}:?\d{2})$/i.test(raw);
+  const normalized = raw.includes("T") ? raw : raw.replace(" ", "T");
+  const timestamp = isSQLiteTimestamp && !hasExplicitTimezone ? `${normalized}Z` : normalized;
+  const date = new Date(timestamp);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function formatExactPostDate(date) {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  }).format(date);
+}
+
+function getCalendarDayDistance(date, reference = new Date()) {
+  const dateStart = new Date(date);
+  const referenceStart = new Date(reference);
+  dateStart.setHours(0, 0, 0, 0);
+  referenceStart.setHours(0, 0, 0, 0);
+  return Math.round(Math.abs(referenceStart.getTime() - dateStart.getTime()) / (60 * 60 * 24 * 1000));
+}
+
+function formatRelativeDate(date) {
+  const diffMs = Date.now() - date.getTime();
+  const isFuture = diffMs < 0;
+  const absMs = Math.abs(diffMs);
+  const seconds = Math.round(absMs / 1000);
+  const dayDistance = getCalendarDayDistance(date);
+
+  if (dayDistance >= 7) return formatExactPostDate(date);
+  if (dayDistance >= 1) {
+    const label = `${dayDistance} day${dayDistance === 1 ? "" : "s"}`;
+    return isFuture ? `in ${label}` : `${label} ago`;
+  }
+  if (seconds < 45) return "Just now";
+
+  const units = [
+    ["hour", 60 * 60],
+    ["minute", 60],
+  ];
+
+  for (const [unit, unitSeconds] of units) {
+    const hasUnitElapsed = Math.floor(seconds / unitSeconds) >= 1;
+    if (hasUnitElapsed) {
+      const value = Math.max(1, Math.round(seconds / unitSeconds));
+      const label = `${value} ${unit}${value === 1 ? "" : "s"}`;
+      return isFuture ? `in ${label}` : `${label} ago`;
+    }
+  }
+
+  return "Just now";
+}
+
+function getPostDisplayDate(post = {}) {
+  const rawDate = String(post.date || "").trim();
+  const rawDateLower = rawDate.toLowerCase();
+  const timestamp =
+    parsePostTimestamp(rawDate) ||
+    (rawDateLower === "just now" ? parsePostTimestamp(post.createdAt) : null) ||
+    (!rawDate ? parsePostTimestamp(post.createdAt) : null);
+
+  return timestamp ? formatRelativeDate(timestamp) : rawDate;
+}
+
+function hasRichHTML(value = "") {
+  return /<\/?[a-z][\s\S]*>/i.test(String(value));
+}
+
+function sanitizeRichHref(value = "") {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+
+  let href = raw;
+  if (/^[\w.-]+\.[a-z]{2,}(\/.*)?$/i.test(href)) {
+    href = `https://${href}`;
+  }
+
+  if (
+    href.startsWith("/") ||
+    href.startsWith("#") ||
+    href.startsWith("./") ||
+    href.startsWith("../")
+  ) {
+    return href;
+  }
+
+  try {
+    const parsed = new URL(href, document.baseURI);
+    const safeProtocols = new Set(["http:", "https:", "mailto:", "tel:"]);
+    return safeProtocols.has(parsed.protocol) ? href : "";
+  } catch {
+    return "";
+  }
+}
+
+function sanitizeRichHTML(value = "") {
+  const source = String(value || "").trim();
+  if (!source) return "";
+  if (typeof document === "undefined") return escapeHTML(source);
+
+  const allowedTags = new Set([
+    "a",
+    "blockquote",
+    "br",
+    "em",
+    "h2",
+    "h3",
+    "li",
+    "mark",
+    "ol",
+    "p",
+    "strong",
+    "ul",
+  ]);
+  const template = document.createElement("template");
+  template.innerHTML = source;
+
+  function cleanNode(node) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      return document.createTextNode(node.textContent || "");
+    }
+
+    if (node.nodeType !== Node.ELEMENT_NODE) {
+      return document.createDocumentFragment();
+    }
+
+    const tag = node.tagName.toLowerCase();
+    const children = document.createDocumentFragment();
+    node.childNodes.forEach((child) => children.append(cleanNode(child)));
+
+    const highlightStyle = node.getAttribute("style") || "";
+    const hasHighlight =
+      /background|background-color/i.test(highlightStyle) ||
+      node.hasAttribute("bgcolor");
+
+    if ((tag === "span" || tag === "font") && hasHighlight) {
+      const mark = document.createElement("mark");
+      mark.append(children);
+      return mark;
+    }
+
+    const normalizedTag =
+      tag === "b" ? "strong" : tag === "i" ? "em" : tag;
+
+    if (!allowedTags.has(normalizedTag)) return children;
+
+    const element = document.createElement(normalizedTag);
+
+    if (normalizedTag === "a") {
+      const href = sanitizeRichHref(node.getAttribute("href"));
+      if (!href) return children;
+      element.setAttribute("href", href);
+      element.setAttribute("target", "_blank");
+      element.setAttribute("rel", "noopener noreferrer");
+    }
+
+    element.append(children);
+    return element;
+  }
+
+  const fragment = document.createDocumentFragment();
+  template.content.childNodes.forEach((node) => {
+    fragment.append(cleanNode(node));
+  });
+
+  const holder = document.createElement("div");
+  holder.append(fragment);
+  holder
+    .querySelectorAll("p, h2, h3, blockquote, li")
+    .forEach((element) => {
+      if (!element.textContent.trim() && !element.querySelector("br")) {
+        element.remove();
+      }
+    });
+
+  const blockTags = new Set(["BLOCKQUOTE", "H2", "H3", "OL", "P", "UL"]);
+  const inlineTags = new Set(["A", "BR", "EM", "MARK", "STRONG"]);
+  const normalizedHolder = document.createElement("div");
+  let paragraph = null;
+
+  function flushParagraph() {
+    if (!paragraph) return;
+    if (paragraph.textContent.trim() || paragraph.querySelector("br")) {
+      normalizedHolder.append(paragraph);
+    }
+    paragraph = null;
+  }
+
+  Array.from(holder.childNodes).forEach((node) => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      if (!node.textContent.trim()) return;
+      if (!paragraph) paragraph = document.createElement("p");
+      paragraph.append(node.cloneNode(true));
+      return;
+    }
+
+    if (node.nodeType !== Node.ELEMENT_NODE) return;
+
+    if (blockTags.has(node.tagName)) {
+      flushParagraph();
+      normalizedHolder.append(node.cloneNode(true));
+      return;
+    }
+
+    if (inlineTags.has(node.tagName)) {
+      if (!paragraph) paragraph = document.createElement("p");
+      paragraph.append(node.cloneNode(true));
+    }
+  });
+
+  flushParagraph();
+
+  return normalizedHolder.innerHTML.trim();
+}
+
+function plainTextToRichHTML(value = "") {
+  const body = String(value || "").trim();
+  if (!body) return "";
+
+  return body
+    .split(/\n{2,}/)
+    .map((block) => block.trim())
+    .filter(Boolean)
+    .map((block) => {
+      if (block.startsWith("### ")) {
+        return `<h3>${escapeHTML(block.slice(4))}</h3>`;
+      }
+      if (block.startsWith("## ")) {
+        return `<h2>${escapeHTML(block.slice(3))}</h2>`;
+      }
+
+      const lines = block.split("\n").map((line) => line.trim());
+      if (lines.length > 1 && lines.every((line) => line.startsWith("- "))) {
+        return `<ul>${lines
+          .map((line) => `<li>${escapeHTML(line.slice(2))}</li>`)
+          .join("")}</ul>`;
+      }
+
+      return `<p>${escapeHTML(block).replace(/\n/g, "<br>")}</p>`;
+    })
+    .join("");
+}
+
+function normalizeWhitespace(value = "") {
+  return String(value || "").replace(/\s+/g, " ").trim();
+}
+
+function richContentToText(value = "") {
+  const source = String(value || "").trim();
+  if (!source) return "";
+
+  if (typeof document !== "undefined" && hasRichHTML(source)) {
+    const template = document.createElement("template");
+    template.innerHTML = sanitizeRichHTML(source);
+    return normalizeWhitespace(template.content.textContent || "");
+  }
+
+  return normalizeWhitespace(
+    source
+      .replace(/^#{2,3}\s+/gm, "")
+      .replace(/^- /gm, "")
+      .replace(/<[^>]*>/g, " "),
+  );
+}
+
+function truncateText(value = "", maxLength = 240) {
+  const text = normalizeWhitespace(value);
+  if (text.length <= maxLength) return text;
+  return `${text.slice(0, maxLength - 3).trimEnd()}...`;
+}
+
 function slugify(value) {
   return String(value)
     .toLowerCase()
@@ -245,6 +526,8 @@ async function loadInitialData() {
         excerpt: post.excerpt,
         category: post.category,
         date: post.date,
+        createdAt: post.createdAt,
+        updatedAt: post.updatedAt,
         status: post.status,
         image: post.image,
         supportingImages: Array.isArray(post.supportingImages) ? post.supportingImages : [],
@@ -289,7 +572,7 @@ function initPaintCursor() {
   const hoverSelector =
     "a, button, .btn, .card, .post-card, .does-item, .service-card, .dna-cell, .nav-item, .logout-btn, .login-btn, .filter-tab";
   const redSurfaceSelector =
-    ".book-section, .featured-in, .cta-band, .partnership-cta";
+    ".book-section, .featured-in, .cta-band, .partnership-cta, .page-contact .channels-card";
 
   document.addEventListener("mousemove", (event) => {
     const target = event.target instanceof Element ? event.target : null;
@@ -536,7 +819,7 @@ function getFilteredBlogPosts(state) {
       post.category,
       post.location,
       post.excerpt,
-      post.date,
+      getPostDisplayDate(post),
     ]
       .join(" ")
       .toLowerCase();
@@ -584,7 +867,7 @@ function renderArchiveBlogCard(post, index) {
       <div class="post-card-body">
         <div class="post-meta">
           <span class="diabla-eyebrow card-eyebrow">${escapeHTML(post.location)}</span>
-          <span class="post-date">${escapeHTML(post.date)}</span>
+          <span class="post-date">${escapeHTML(getPostDisplayDate(post))}</span>
         </div>
         <h2 class="post-title">${escapeHTML(post.title)}</h2>
         <p class="post-excerpt">${escapeHTML(post.excerpt)}</p>
@@ -684,28 +967,11 @@ function formatPostContent(content = "") {
   const body = String(content).trim();
   if (!body) return "<p>Full story details are coming soon.</p>";
 
-  return body
-    .split(/\n{2,}/)
-    .map((block) => block.trim())
-    .filter(Boolean)
-    .map((block) => {
-      if (block.startsWith("### ")) {
-        return `<h3>${escapeHTML(block.slice(4))}</h3>`;
-      }
-      if (block.startsWith("## ")) {
-        return `<h2>${escapeHTML(block.slice(3))}</h2>`;
-      }
+  if (hasRichHTML(body)) {
+    return sanitizeRichHTML(body) || "<p>Full story details are coming soon.</p>";
+  }
 
-      const lines = block.split("\n").map((line) => line.trim());
-      if (lines.length > 1 && lines.every((line) => line.startsWith("- "))) {
-        return `<ul>${lines
-          .map((line) => `<li>${escapeHTML(line.slice(2))}</li>`)
-          .join("")}</ul>`;
-      }
-
-      return `<p>${escapeHTML(block).replace(/\n/g, "<br>")}</p>`;
-    })
-    .join("");
+  return plainTextToRichHTML(body);
 }
 
 function renderPostNavItem(post, direction) {
@@ -823,6 +1089,7 @@ function renderSinglePostPage(payload) {
   const kicker = document.getElementById("singlePostKicker");
   const meta = document.getElementById("singlePostMeta");
   const image = document.getElementById("singlePostImage");
+  const coverImage = document.getElementById("singlePostCoverImage");
   const content = document.getElementById("singlePostContent");
   const nav = document.getElementById("singlePostNav");
   const form = document.getElementById("commentForm");
@@ -832,13 +1099,17 @@ function renderSinglePostPage(payload) {
   if (kicker) kicker.textContent = post.category;
   if (meta) {
     meta.innerHTML = `
-      <span>${escapeHTML(post.location || post.category)}</span>
-      <span>${escapeHTML(post.date || "")}</span>
+      <span>Posted by Kimia Kalbasi</span>
+      <span>on ${escapeHTML(getPostDisplayDate(post))}</span>
     `;
   }
   if (image) {
     image.src = post.image || BLOG_DEFAULT_IMAGE;
     image.alt = post.title;
+  }
+  if (coverImage) {
+    coverImage.src = post.image || BLOG_DEFAULT_IMAGE;
+    coverImage.alt = "";
   }
   if (content) {
     content.innerHTML = formatPostContent(post.content || post.excerpt);
@@ -1043,8 +1314,218 @@ function initContactForm() {
   form.addEventListener("submit", dispatchFormPayload);
 }
 
+function getPostContentEditor() {
+  return document.getElementById("postContentEditor");
+}
+
+function syncRichEditorToTextarea(options = {}) {
+  const editor = getPostContentEditor();
+  const input = document.getElementById("postContentInput");
+  if (!editor || !input) return "";
+
+  const sanitized = sanitizeRichHTML(editor.innerHTML);
+  input.value = sanitized;
+
+  if (options.cleanEditor) {
+    editor.innerHTML = sanitized;
+  }
+
+  return sanitized;
+}
+
+function setRichEditorContent(value = "") {
+  const editor = getPostContentEditor();
+  const input = document.getElementById("postContentInput");
+  if (!editor || !input) return;
+
+  const source = String(value || "").trim();
+  const content = hasRichHTML(source)
+    ? sanitizeRichHTML(source)
+    : plainTextToRichHTML(source);
+
+  editor.innerHTML = content;
+  input.value = content;
+}
+
+function normalizeEditorLinks(editor) {
+  editor.querySelectorAll("a[href]").forEach((link) => {
+    const href = sanitizeRichHref(link.getAttribute("href"));
+    if (!href) {
+      const text = document.createTextNode(link.textContent || "");
+      link.replaceWith(text);
+      return;
+    }
+
+    link.setAttribute("href", href);
+    link.setAttribute("target", "_blank");
+    link.setAttribute("rel", "noopener noreferrer");
+  });
+}
+
+function ensureEditorSelection(editor) {
+  const selection = window.getSelection();
+  if (selection && selection.rangeCount && editor.contains(selection.anchorNode)) {
+    return;
+  }
+  if (!selection) return;
+
+  const range = document.createRange();
+  range.selectNodeContents(editor);
+  range.collapse(false);
+  selection.removeAllRanges();
+  selection.addRange(range);
+}
+
+function insertEditorHTML(html) {
+  const editor = getPostContentEditor();
+  if (!editor) return;
+  ensureEditorSelection(editor);
+  document.execCommand("insertHTML", false, html);
+}
+
+function updateEditorToolbarState() {
+  const editor = getPostContentEditor();
+  if (!editor || !document.activeElement) return;
+
+  const isEditorFocused =
+    document.activeElement === editor || editor.contains(document.activeElement);
+
+  document.querySelectorAll("[data-editor-command]").forEach((button) => {
+    const command = button.dataset.editorCommand;
+    const queryCommand =
+      command === "bold" ? "bold" : command === "italic" ? "italic" : "";
+
+    if (!queryCommand || !isEditorFocused) {
+      button.classList.remove("is-active");
+      return;
+    }
+
+    try {
+      button.classList.toggle("is-active", document.queryCommandState(queryCommand));
+    } catch {
+      button.classList.remove("is-active");
+    }
+  });
+}
+
+function applyEditorCommand(command) {
+  const editor = getPostContentEditor();
+  if (!editor) return;
+
+  editor.focus();
+  ensureEditorSelection(editor);
+
+  if (command === "paragraph") {
+    document.execCommand("formatBlock", false, "p");
+  }
+
+  if (command === "bold") {
+    document.execCommand("bold");
+  }
+
+  if (command === "italic") {
+    document.execCommand("italic");
+  }
+
+  if (command === "highlight") {
+    const didHighlight = document.execCommand("hiliteColor", false, "#fff3a6");
+    if (!didHighlight) {
+      document.execCommand("backColor", false, "#fff3a6");
+    }
+  }
+
+  if (command === "link") {
+    const selection = window.getSelection();
+    const selectedText = normalizeWhitespace(selection?.toString() || "");
+    const rawHref = prompt("Paste the link URL");
+    const href = sanitizeRichHref(rawHref);
+
+    if (!href) {
+      showToast("Use a valid http, https, mailto, tel, or relative link.", "error");
+      return;
+    }
+
+    if (selectedText) {
+      document.execCommand("createLink", false, href);
+    } else {
+      const label = prompt("Link text") || href;
+      insertEditorHTML(
+        `<a href="${escapeHTML(href)}" target="_blank" rel="noopener noreferrer">${escapeHTML(label)}</a>`,
+      );
+    }
+
+    normalizeEditorLinks(editor);
+  }
+
+  if (command === "ul") {
+    document.execCommand("insertUnorderedList");
+  }
+
+  if (command === "ol") {
+    document.execCommand("insertOrderedList");
+  }
+
+  if (command === "clear") {
+    document.execCommand("removeFormat");
+  }
+
+  syncRichEditorToTextarea();
+  updateEditorToolbarState();
+}
+
+function initRichTextEditor() {
+  const editor = getPostContentEditor();
+  if (!editor || editor.dataset.editorReady === "true") return;
+  editor.dataset.editorReady = "true";
+
+  try {
+    document.execCommand("styleWithCSS", false, false);
+  } catch {
+    // Browsers that ignore styleWithCSS still support the core editor commands.
+  }
+
+  document.querySelectorAll("[data-editor-command]").forEach((button) => {
+    button.addEventListener("mousedown", (event) => event.preventDefault());
+    button.addEventListener("click", () => {
+      applyEditorCommand(button.dataset.editorCommand);
+    });
+  });
+
+  editor.addEventListener("input", () => syncRichEditorToTextarea());
+  editor.addEventListener("blur", () => {
+    syncRichEditorToTextarea({ cleanEditor: true });
+    updateEditorToolbarState();
+  });
+  editor.addEventListener("mouseup", updateEditorToolbarState);
+  editor.addEventListener("keyup", updateEditorToolbarState);
+
+  editor.addEventListener("keydown", (event) => {
+    const commandKey = event.metaKey || event.ctrlKey;
+    if (!commandKey) return;
+
+    const key = event.key.toLowerCase();
+    if (key === "b" || key === "i" || key === "k") {
+      event.preventDefault();
+      applyEditorCommand(key === "b" ? "bold" : key === "i" ? "italic" : "link");
+    }
+  });
+
+  editor.addEventListener("paste", (event) => {
+    event.preventDefault();
+    const clipboard = event.clipboardData;
+    const html = clipboard?.getData("text/html") || "";
+    const text = clipboard?.getData("text/plain") || "";
+    const cleanHTML = html ? sanitizeRichHTML(html) : plainTextToRichHTML(text);
+
+    insertEditorHTML(cleanHTML || escapeHTML(text));
+    syncRichEditorToTextarea();
+  });
+}
+
 function initAdminBindings() {
   if (!document.body.classList.contains("page-admin")) return;
+
+  initRichTextEditor();
 
   const passInput = document.getElementById("passInput");
   if (passInput) {
@@ -1184,6 +1665,8 @@ let posts = blogData.map((post) => ({
   content: post.content || post.excerpt,
   category: post.category,
   date: post.date,
+  createdAt: post.createdAt,
+  updatedAt: post.updatedAt,
   status: post.status,
   image: post.image,
   slug: post.slug,
@@ -1364,7 +1847,7 @@ function buildRealActivities() {
   const recentPosts = posts.slice(0, 3).map((post) => ({
     type: post.status === "Published" ? "Published Post" : "Draft Post",
     desc: post.title,
-    time: post.date || "No date",
+    time: getPostDisplayDate(post) || "No date",
   }));
 
   const recentMessages = messages.slice(0, 3).map((message) => ({
@@ -1392,12 +1875,17 @@ function renderBlogPosts(filter = "all") {
       let badgeClass = "status-published";
       if (p.status === "Draft") badgeClass = "status-draft";
       if (p.status === "Scheduled") badgeClass = "status-scheduled";
+      const fullSnippet = richContentToText(p.excerpt || p.content || "");
+      const snippet = truncateText(fullSnippet, 260) || "No snippet available.";
 
       return `
     <tr>
-      <td class="post-title-cell">${escapeHTML(p.title)}<p>${escapeHTML(p.excerpt)}</p></td>
+      <td class="post-title-cell">
+        <div class="admin-post-title">${escapeHTML(p.title)}</div>
+        <p class="admin-post-excerpt" title="${escapeHTML(fullSnippet)}">${escapeHTML(snippet)}</p>
+      </td>
       <td class="admin-table-category">${escapeHTML(p.category)}</td>
-      <td class="admin-table-muted-medium">${escapeHTML(p.date)}</td>
+      <td class="admin-table-muted-medium">${escapeHTML(getPostDisplayDate(p))}</td>
       <td><span class="status-badge ${badgeClass}">${escapeHTML(p.status)}</span></td>
       <td>
         <div class="actions-cell">
@@ -1437,7 +1925,7 @@ function openPostModal(editId = null) {
     document.getElementById("postTitleInput").value = p.title;
     document.getElementById("postCategoryInput").value = p.category;
     document.getElementById("postStatusSelect").value = p.status;
-    document.getElementById("postContentInput").value = p.content || p.excerpt;
+    setRichEditorContent(p.content || p.excerpt);
     document.getElementById("postImageInput").value = p.image || "";
     document.getElementById("postImageUploadInput").value = "";
     document.getElementById("postSupportingImagesUploadInput").value = "";
@@ -1452,7 +1940,7 @@ function openPostModal(editId = null) {
     document.getElementById("postTitleInput").value = "";
     document.getElementById("postCategoryInput").value = "";
     document.getElementById("postStatusSelect").value = "Published";
-    document.getElementById("postContentInput").value = "";
+    setRichEditorContent("");
     document.getElementById("postImageInput").value = "";
     document.getElementById("postImageUploadInput").value = "";
     document.getElementById("postSupportingImagesUploadInput").value = "";
@@ -1683,6 +2171,8 @@ function syncBlogDataFromAdminPost(post) {
     content: post.content || existing?.content || post.excerpt,
     excerpt: post.excerpt,
     date: post.date,
+    createdAt: post.createdAt || existing?.createdAt,
+    updatedAt: post.updatedAt || existing?.updatedAt,
     status: post.status,
   };
 
@@ -1697,18 +2187,24 @@ async function savePostData() {
   const status = document.getElementById("postStatusSelect").value;
   const image = document.getElementById("postImageInput").value.trim();
   const supportingImages = getSupportingImages();
-  const excerpt = document
-    .getElementById("postContentInput")
-    .value.trim();
+  const content = syncRichEditorToTextarea({ cleanEditor: true });
+  const contentText = richContentToText(content);
+  const excerpt = truncateText(contentText, 320);
 
   if (!title || !cat) {
     showToast("Required metrics missing.", "error");
     return;
   }
 
+  if (!contentText) {
+    showToast("Content body needs at least one paragraph.", "error");
+    return;
+  }
+
   try {
     const method = id ? "PUT" : "POST";
     const path = id ? `/posts/${id}` : "/posts";
+    const existingPost = id ? posts.find((post) => String(post.id) === String(id)) : null;
     const payload = {
       title: title,
       excerpt: excerpt || "No description payload defined.",
@@ -1716,10 +2212,11 @@ async function savePostData() {
       status: status,
       image: image || BLOG_DEFAULT_IMAGE,
       supportingImages,
-      content: excerpt || "No description payload defined.",
+      content: content || plainTextToRichHTML("No description payload defined."),
       location: cat,
       categoryColor: getCategoryColorFromName(cat),
-      date: id ? posts.find((post) => String(post.id) === String(id))?.date : "Just Now",
+      date: existingPost?.date || new Date().toISOString(),
+      createdAt: existingPost?.createdAt,
     };
 
     const result = await apiRequest(path, {
@@ -1734,6 +2231,8 @@ async function savePostData() {
       excerpt: result.post.excerpt,
       category: result.post.category,
       date: result.post.date,
+      createdAt: result.post.createdAt,
+      updatedAt: result.post.updatedAt,
       status: result.post.status,
       image: result.post.image,
       supportingImages: Array.isArray(result.post.supportingImages)

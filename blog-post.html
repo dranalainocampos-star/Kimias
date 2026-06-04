@@ -52,9 +52,16 @@
       </div>
     </header>
 
-    <main data-post-page>
-      <section class="single-post-hero grid-surface">
-        <div class="container">
+    <main class="single-post-layout" data-post-page>
+      <section class="single-post-hero">
+        <img
+          id="singlePostCoverImage"
+          class="single-post-cover-image"
+          alt=""
+          aria-hidden="true"
+        />
+        <div class="single-post-cover-shade"></div>
+        <div class="single-post-cover-content">
           <a href="/blog" class="post-back-link">&larr; Back to Blog</a>
           <div class="diabla-eyebrow single-post-kicker" id="singlePostKicker">
             Loading
@@ -67,7 +74,10 @@
       </section>
 
       <section class="single-post-media">
-        <div class="container">
+        <div class="single-post-reading-inner">
+          <div class="single-post-entry-mark" aria-hidden="true">
+            <span></span>
+          </div>
           <img id="singlePostImage" alt="" />
           <div
             class="single-post-gallery"
@@ -78,7 +88,7 @@
       </section>
 
       <section class="single-post-body">
-        <div class="container">
+        <div class="single-post-reading-inner">
           <article class="single-post-content" id="singlePostContent">
             <p>Loading the full story...</p>
           </article>
@@ -92,7 +102,7 @@
       </section>
 
       <section class="comments-section">
-        <div class="container comments-inner">
+        <div class="comments-inner">
           <div class="comments-copy">
             <div class="diabla-eyebrow">Discussion</div>
             <h2 class="comments-title" id="commentsCount">0 Comments</h2>

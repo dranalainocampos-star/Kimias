@@ -102,6 +102,42 @@ const seedPosts = [
     publishedAt: "Nov 2025",
     status: "Published",
   },
+  {
+    title: "Morning Hikes That Will Completely Reset Your Week",
+    category: "Lifestyle",
+    location: "Outdoors",
+    categoryColor: "olive",
+    image:
+      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1200",
+    slug: "bay-area-morning-hikes",
+    excerpt: "Five trails within an hour of SF that offer real solitude and real views.",
+    publishedAt: "Oct 2025",
+    status: "Published",
+  },
+  {
+    title: "Natural Wine Bars in SF That Are Actually Worth The Hype",
+    category: "Drinks",
+    location: "Natural Wine",
+    categoryColor: "pink",
+    image:
+      "https://images.unsplash.com/photo-1470337458703-46ad1756a187?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1200",
+    slug: "sf-natural-wine-bars",
+    excerpt: "Cloudy, funky, alive. The natural wine scene in SF is finally growing up.",
+    publishedAt: "Sep 2025",
+    status: "Published",
+  },
+  {
+    title: "A Tiny Guide to Eating Solo Without Feeling Weird",
+    category: "Lifestyle",
+    location: "Solo Dining",
+    categoryColor: "olive",
+    image:
+      "https://images.unsplash.com/photo-1498654896293-37aacf113fd9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1200",
+    slug: "solo-dining-guide",
+    excerpt: "Counter seats, quiet confidence, and places where dining alone feels luxurious.",
+    publishedAt: "Aug 2025",
+    status: "Published",
+  },
 ];
 
 const db = new Database(DB_PATH);
@@ -250,6 +286,8 @@ function postPayload(body) {
   const title = String(body.title || "").trim();
   const category = String(body.category || "").trim();
   const content = String(body.content || body.excerpt || "").trim();
+  const publishedAtInput = String(body.date || body.publishedAt || "").trim();
+  const createdAtInput = String(body.createdAt || body.created_at || "").trim();
   if (!title || !category) {
     const error = new Error("title and category are required");
     error.status = 400;
@@ -268,7 +306,10 @@ function postPayload(body) {
     slug: String(body.slug || slugify(title)).trim(),
     content,
     excerpt: String(body.excerpt || content).trim(),
-    publishedAt: String(body.date || body.publishedAt || "Just Now").trim(),
+    publishedAt:
+      !publishedAtInput || (publishedAtInput.toLowerCase() === "just now" && !createdAtInput)
+        ? new Date().toISOString()
+        : publishedAtInput,
     status: String(body.status || "Draft").trim(),
   };
 }

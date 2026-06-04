@@ -325,15 +325,105 @@
               class="supporting-images-preview"
             ></div>
           </div>
-          <div class="form-group">
-            <label class="form-label"
-              >Content Body Markdown / HTML Structure</label
-            >
-            <textarea
-              id="postContentInput"
-              class="form-input"
-              placeholder="Begin tracking narrative components..."
-            ></textarea>
+          <div class="form-group rich-editor-group">
+            <label class="form-label">Content Body</label>
+            <div class="rich-editor" data-rich-editor>
+              <div
+                class="rich-editor-toolbar"
+                aria-label="Article formatting toolbar"
+              >
+                <button
+                  type="button"
+                  class="editor-tool"
+                  data-editor-command="paragraph"
+                  aria-label="Paragraph"
+                  title="Paragraph"
+                >
+                  P
+                </button>
+                <button
+                  type="button"
+                  class="editor-tool"
+                  data-editor-command="bold"
+                  aria-label="Bold"
+                  title="Bold"
+                >
+                  <strong>B</strong>
+                </button>
+                <button
+                  type="button"
+                  class="editor-tool"
+                  data-editor-command="italic"
+                  aria-label="Italic"
+                  title="Italic"
+                >
+                  <em>I</em>
+                </button>
+                <button
+                  type="button"
+                  class="editor-tool editor-tool-wide"
+                  data-editor-command="highlight"
+                  aria-label="Highlight"
+                  title="Highlight"
+                >
+                  Highlight
+                </button>
+                <button
+                  type="button"
+                  class="editor-tool"
+                  data-editor-command="link"
+                  aria-label="Add link"
+                  title="Add link"
+                >
+                  Link
+                </button>
+                <button
+                  type="button"
+                  class="editor-tool"
+                  data-editor-command="ul"
+                  aria-label="Bullet list"
+                  title="Bullet list"
+                >
+                  List
+                </button>
+                <button
+                  type="button"
+                  class="editor-tool"
+                  data-editor-command="ol"
+                  aria-label="Numbered list"
+                  title="Numbered list"
+                >
+                  1.
+                </button>
+                <button
+                  type="button"
+                  class="editor-tool editor-tool-wide"
+                  data-editor-command="clear"
+                  aria-label="Clear formatting"
+                  title="Clear formatting"
+                >
+                  Clear
+                </button>
+              </div>
+              <div
+                id="postContentEditor"
+                class="rich-editor-surface"
+                contenteditable="true"
+                role="textbox"
+                aria-multiline="true"
+                data-placeholder="Write the article body here..."
+              ></div>
+              <textarea
+                id="postContentInput"
+                class="rich-editor-hidden"
+                tabindex="-1"
+                aria-hidden="true"
+              ></textarea>
+            </div>
+            <p class="editor-help">
+              Build the final article with clear paragraphs, focused emphasis,
+              useful links, and clean lists.
+            </p>
           </div>
         </div>
         <div class="modal-footer">
