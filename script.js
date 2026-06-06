@@ -1,5 +1,6 @@
 const API_BASE = "/api";
 const BLOG_BATCH_SIZE = 6;
+const ADMIN_REFRESH_INTERVAL_MS = 15000;
 const BLOG_DEFAULT_IMAGE =
   "https://images.unsplash.com/photo-1504674900247-0877df9cc836?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1200";
 
@@ -1650,6 +1651,7 @@ function initAdminBindings() {
     const panelTrigger = event.target.closest("[data-panel]");
     if (panelTrigger) {
       switchPanel(panelTrigger.dataset.panel, panelTrigger);
+      if (getAdminToken()) refreshAdminData({ notify: false });
       return;
     }
 
@@ -1696,6 +1698,12 @@ function initAdminBindings() {
     if (action === "approve-consulting") approveConsulting(id);
     if (action === "archive-message") {
       showToast("Archive system pipeline integration pending.");
+    }
+  });
+
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden && getAdminToken()) {
+      refreshAdminData({ notify: true });
     }
   });
 }
@@ -1788,20 +1796,13 @@ let consultingRequests = [];
 let messages = [];
 let subscribers = [];
 let activities = [];
+let adminRefreshTimer = null;
+let adminRefreshInFlight = null;
 
 // ── APPLICATION ENTRY VALIDATION CONTEXT ──
 async function attemptLogin() {
   const input = document.getElementById("passInput");
   const rawToken = input.value.trim();
-  const val = rawToken.toLowerCase();
-  const allowedTokens = [
-    "admin",
-    "admin123",
-    "password",
-    "kimia",
-    "kimia123",
-    "kimiaskravings",
-  ];
 
   try {
     await apiRequest("/admin/login", {
@@ -1815,16 +1816,6 @@ async function attemptLogin() {
     await initializeApplicationCore();
     showToast("System Authorization Acknowledged.", "success");
   } catch (error) {
-    if (allowedTokens.includes(val)) {
-      localStorage.setItem("kimiaAdminToken", "admin");
-      document.getElementById("loginScreen").style.display = "none";
-      document.getElementById("app").style.display = "block";
-      document.getElementById("loginError").classList.remove("show");
-      await initializeApplicationCore();
-      showToast("System Authorization Acknowledged.", "success");
-      return;
-    }
-
     const err = document.getElementById("loginError");
     err.classList.add("show");
     input.focus();
@@ -1834,12 +1825,36 @@ async function attemptLogin() {
 }
 
 function triggerLogout() {
+  stopAdminLiveRefresh();
   localStorage.removeItem("kimiaAdminToken");
   document.getElementById("passInput").value = "";
   document.getElementById("loginError").classList.remove("show");
   document.getElementById("app").style.display = "none";
   document.getElementById("loginScreen").style.display = "flex";
   showToast("Session Terminated Safely.");
+}
+
+function idsFor(items = []) {
+  return new Set(items.map((item) => item.id));
+}
+
+function pendingCommentCount(items = comments) {
+  return items.filter((comment) => comment.pending).length;
+}
+
+function activeCommentFilter() {
+  return (
+    document.querySelector("[data-comment-filter].active")?.dataset.commentFilter ||
+    "all"
+  );
+}
+
+function renderAdminRealtimePanels() {
+  updateBadges();
+  renderDashboardActivities();
+  renderComments(activeCommentFilter());
+  renderMessagesList();
+  renderSubscribersTable();
 }
 
 async function loadAdminMessages() {
@@ -1886,18 +1901,70 @@ async function loadAdminSubscribers() {
 
 // ── ENGINE INITIALIZATION PROCEDURES ──
 async function initializeApplicationCore() {
-  await Promise.all([loadAdminMessages(), loadAdminComments(), loadAdminSubscribers()]);
-  updateBadges();
-  renderDashboardActivities();
+  await refreshAdminData({ notify: false });
   renderBlogPosts("all");
-  renderComments();
   renderConsultingTable();
-  renderMessagesList();
-  renderSubscribersTable();
+  startAdminLiveRefresh();
+}
+
+async function refreshAdminData(options = {}) {
+  if (adminRefreshInFlight) return adminRefreshInFlight;
+
+  const { notify = true } = options;
+  const previousPendingCommentIds = idsFor(comments.filter((comment) => comment.pending));
+  const previousSubscriberIds = idsFor(subscribers);
+
+  adminRefreshInFlight = (async () => {
+    await Promise.all([loadAdminMessages(), loadAdminComments(), loadAdminSubscribers()]);
+    renderAdminRealtimePanels();
+
+    if (notify) {
+      const newPendingComments = comments.filter(
+        (comment) => comment.pending && !previousPendingCommentIds.has(comment.id),
+      );
+      const newSubscribers = subscribers.filter(
+        (subscriber) => !previousSubscriberIds.has(subscriber.id),
+      );
+
+      if (newPendingComments.length && newSubscribers.length) {
+        showToast(
+          `${newPendingComments.length} new comment${newPendingComments.length === 1 ? "" : "s"} and ${newSubscribers.length} new subscriber${newSubscribers.length === 1 ? "" : "s"} received.`,
+        );
+      } else if (newPendingComments.length) {
+        showToast(
+          `${newPendingComments.length} new comment${newPendingComments.length === 1 ? "" : "s"} waiting for moderation.`,
+        );
+      } else if (newSubscribers.length) {
+        showToast(
+          `${newSubscribers.length} new newsletter subscriber${newSubscribers.length === 1 ? "" : "s"} added.`,
+        );
+      }
+    }
+  })();
+
+  try {
+    await adminRefreshInFlight;
+  } finally {
+    adminRefreshInFlight = null;
+  }
+}
+
+function startAdminLiveRefresh() {
+  stopAdminLiveRefresh();
+  adminRefreshTimer = window.setInterval(() => {
+    if (document.hidden || !getAdminToken()) return;
+    refreshAdminData({ notify: true });
+  }, ADMIN_REFRESH_INTERVAL_MS);
+}
+
+function stopAdminLiveRefresh() {
+  if (!adminRefreshTimer) return;
+  window.clearInterval(adminRefreshTimer);
+  adminRefreshTimer = null;
 }
 
 function updateBadges() {
-  const pComm = comments.filter((c) => c.pending).length;
+  const pComm = pendingCommentCount();
   const pConsult = consultingRequests.filter(
     (r) => r.status === "Pending Approval",
   ).length;
@@ -1993,7 +2060,18 @@ function buildRealActivities() {
     time: subscriber.date || "No timestamp",
   }));
 
-  return [...recentSubscribers, ...recentMessages, ...recentPosts].slice(0, 6);
+  const recentComments = comments.slice(0, 3).map((comment) => ({
+    type: comment.pending ? "Pending Comment" : "Approved Comment",
+    desc: `${comment.author} on ${comment.postTitle || "a post"}`,
+    time: comment.date || "No timestamp",
+  }));
+
+  return [
+    ...recentComments,
+    ...recentSubscribers,
+    ...recentMessages,
+    ...recentPosts,
+  ].slice(0, 6);
 }
 
 function renderBlogPosts(filter = "all") {
@@ -2490,8 +2568,7 @@ async function approveComment(id) {
     });
     const index = comments.findIndex((x) => x.id === id);
     if (index > -1) comments[index] = result.comment;
-    renderComments();
-    updateBadges();
+    renderAdminRealtimePanels();
     showToast("Comment data verified and made public.");
   } catch (error) {
     showToast(error.message || "Unable to approve comment.", "error");
@@ -2519,8 +2596,7 @@ async function postCommentReply(id) {
     });
     const index = comments.findIndex((x) => x.id === id);
     if (index > -1) comments[index] = result.comment;
-    renderComments();
-    updateBadges();
+    renderAdminRealtimePanels();
     showToast("Reply appended to comment tree infrastructure.");
   } catch (error) {
     showToast(error.message || "Unable to save reply.", "error");
@@ -2535,8 +2611,7 @@ async function deleteComment(id) {
       headers: { "x-admin-token": getAdminToken() },
     });
     comments = comments.filter((c) => c.id !== id);
-    renderComments();
-    updateBadges();
+    renderAdminRealtimePanels();
     showToast("Node stripped from content trees.", "error");
   } catch (error) {
     showToast(error.message || "Unable to delete comment.", "error");
