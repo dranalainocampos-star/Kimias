@@ -174,6 +174,7 @@ const categoryColorClassMap = {
 
 const blogRenderState = new Map();
 let fadeUpObserver = null;
+let postDataVersion = 0;
 
 function escapeHTML(value = "") {
   return String(value).replace(/[&<>"']/g, (char) => {
@@ -524,41 +525,66 @@ async function apiRequest(path, options = {}) {
   return response.json();
 }
 
+function applyLoadedPostData(loadedPosts = [], options = {}) {
+  if (!Array.isArray(loadedPosts) || !loadedPosts.length) return;
+
+  const { padHomeFeatured = false } = options;
+  blogData = loadedPosts.map((post) => ({ ...post }));
+
+  if (padHomeFeatured) {
+    fallbackBlogData.forEach((post) => {
+      if (blogData.filter((item) => item.status === "Published").length >= 7) return;
+      if (blogData.some((item) => item.slug === post.slug)) return;
+      blogData.push({ ...post });
+    });
+  }
+
+  posts = blogData.map((post) => ({
+    id: post.id,
+    title: post.title,
+    excerpt: post.excerpt,
+    category: post.category,
+    date: post.date,
+    createdAt: post.createdAt,
+    updatedAt: post.updatedAt,
+    status: post.status,
+    image: post.image,
+    supportingImages: Array.isArray(post.supportingImages) ? post.supportingImages : [],
+    slug: post.slug,
+    content: post.content,
+    location: post.location,
+    categoryColor: post.categoryColor,
+  }));
+}
+
 async function loadInitialData() {
+  const isAdminPage = document.body.classList.contains("page-admin");
+  const requestVersion = postDataVersion;
+
   try {
-    const isAdminPage = document.body.classList.contains("page-admin");
     const payload = await apiRequest(isAdminPage ? "/posts" : "/posts?summary=1");
-    if (Array.isArray(payload.posts) && payload.posts.length) {
-      const shouldPadHomeFeatured = document.body.classList.contains("page-index");
-      blogData = payload.posts.map((post) => ({ ...post }));
-
-      if (shouldPadHomeFeatured) {
-        fallbackBlogData.forEach((post) => {
-          if (blogData.filter((item) => item.status === "Published").length >= 7) return;
-          if (blogData.some((item) => item.slug === post.slug)) return;
-          blogData.push({ ...post });
-        });
-      }
-
-      posts = blogData.map((post) => ({
-        id: post.id,
-        title: post.title,
-        excerpt: post.excerpt,
-        category: post.category,
-        date: post.date,
-        createdAt: post.createdAt,
-        updatedAt: post.updatedAt,
-        status: post.status,
-        image: post.image,
-        supportingImages: Array.isArray(post.supportingImages) ? post.supportingImages : [],
-        slug: post.slug,
-        content: post.content,
-        location: post.location,
-        categoryColor: post.categoryColor,
-      }));
+    if (isAdminPage && requestVersion !== postDataVersion) {
+      return;
     }
+    applyLoadedPostData(payload.posts, {
+      padHomeFeatured: document.body.classList.contains("page-index"),
+    });
   } catch (error) {
     console.warn("Using local fallback blog data:", error.message);
+  }
+}
+
+async function loadAdminPosts() {
+  const requestVersion = postDataVersion;
+
+  try {
+    const payload = await apiRequest("/posts");
+    if (requestVersion !== postDataVersion) {
+      return;
+    }
+    applyLoadedPostData(payload.posts);
+  } catch (error) {
+    console.warn("Unable to load admin posts:", error.message);
   }
 }
 
@@ -2056,7 +2082,7 @@ async function loadAdminSubscribers() {
 
 // ── ENGINE INITIALIZATION PROCEDURES ──
 async function initializeApplicationCore() {
-  await refreshAdminData({ notify: false });
+  await Promise.all([loadAdminPosts(), refreshAdminData({ notify: false })]);
   renderBlogPosts("all");
   renderConsultingTable();
   startAdminLiveRefresh();
@@ -2588,6 +2614,7 @@ async function savePostData() {
       date: existingPost?.date || undefined,
       createdAt: existingPost?.createdAt || undefined,
     };
+    postDataVersion += 1;
 
     const result = await apiRequest(path, {
       method,
@@ -2636,6 +2663,7 @@ async function savePostData() {
 async function deletePost(id) {
   if (!confirm("Purge selected post item from memory arrays?")) return;
   try {
+    postDataVersion += 1;
     await apiRequest(`/posts/${id}`, {
       method: "DELETE",
       headers: { "x-admin-token": getAdminToken() },

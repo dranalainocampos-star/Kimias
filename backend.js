@@ -1,7 +1,7 @@
 import Database from "better-sqlite3";
 import compression from "compression";
 import express from "express";
-import { put } from "@vercel/blob";
+import { get, put } from "@vercel/blob";
 import helmet from "helmet";
 import multer from "multer";
 import fs from "node:fs/promises";
@@ -16,6 +16,44 @@ const DB_PATH =
   process.env.DATABASE_PATH || (process.env.VERCEL ? "/tmp/data.sqlite" : path.join(__dirname, "data.sqlite"));
 const UPLOADS_DIR =
   process.env.UPLOADS_DIR || (process.env.VERCEL ? "/tmp/uploads" : path.join(__dirname, "uploads"));
+const IS_VERCEL = Boolean(process.env.VERCEL);
+const HAS_BLOB_TOKEN = Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+const SQLITE_BLOB_PATH = process.env.SQLITE_BLOB_PATH || "database/kimias-kravings.sqlite";
+const LOCAL_BLOB_SYNC = ["1", "true", "yes", "on"].includes(
+  String(process.env.SQLITE_BLOB_SYNC || "").trim().toLowerCase(),
+);
+const USE_BLOB_DATABASE = HAS_BLOB_TOKEN && (IS_VERCEL || LOCAL_BLOB_SYNC);
+const HAS_DURABLE_DATABASE = !IS_VERCEL || USE_BLOB_DATABASE;
+
+async function restoreDatabaseFromBlob() {
+  await fs.mkdir(path.dirname(DB_PATH), { recursive: true });
+
+  if (!USE_BLOB_DATABASE) {
+    if (IS_VERCEL) {
+      console.error(
+        "Production database persistence is not configured. Add BLOB_READ_WRITE_TOKEN before enabling live writes.",
+      );
+    }
+    return;
+  }
+
+  try {
+    const snapshot = await get(SQLITE_BLOB_PATH, { access: "private", useCache: false });
+    if (!snapshot?.stream) {
+      console.log(`No SQLite Blob snapshot found at ${SQLITE_BLOB_PATH}; bootstrapping a fresh database.`);
+      return;
+    }
+
+    const snapshotBuffer = Buffer.from(await new Response(snapshot.stream).arrayBuffer());
+    await fs.writeFile(DB_PATH, snapshotBuffer);
+    console.log(`Restored SQLite database from Vercel Blob: ${SQLITE_BLOB_PATH}`);
+  } catch (error) {
+    console.error("Unable to restore the SQLite database from Vercel Blob.", error);
+    throw error;
+  }
+}
+
+await restoreDatabaseFromBlob();
 
 const seedPosts = [
   {
@@ -144,6 +182,26 @@ const seedPosts = [
 const db = new Database(DB_PATH);
 db.pragma("journal_mode = WAL");
 
+let databasePersistQueue = Promise.resolve();
+
+async function persistDatabaseToBlob() {
+  if (!USE_BLOB_DATABASE) return;
+
+  databasePersistQueue = databasePersistQueue.catch(() => {}).then(async () => {
+    db.pragma("wal_checkpoint(TRUNCATE)");
+    const databaseBuffer = await fs.readFile(DB_PATH);
+    await put(SQLITE_BLOB_PATH, databaseBuffer, {
+      access: "private",
+      addRandomSuffix: false,
+      allowOverwrite: true,
+      cacheControlMaxAge: 60,
+      contentType: "application/vnd.sqlite3",
+    });
+  });
+
+  await databasePersistQueue;
+}
+
 db.exec(`
   CREATE TABLE IF NOT EXISTS posts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -216,6 +274,7 @@ const seedMissingPosts = db.transaction((posts) =>
   posts.forEach((post) => insertSeedPost.run({ ...post, content: post.content || post.excerpt })),
 );
 seedMissingPosts(seedPosts);
+await persistDatabaseToBlob();
 
 function normalizeImageList(value) {
   let images = value;
@@ -288,6 +347,16 @@ function requireAdmin(req, res, next) {
   const token = req.get("x-admin-token") || "";
   if (token !== ADMIN_TOKEN) {
     return res.status(401).json({ error: "Unauthorized" });
+  }
+  next();
+}
+
+function requireDurableStorage(req, res, next) {
+  if (!HAS_DURABLE_DATABASE) {
+    return res.status(503).json({
+      error:
+        "Production database storage is not configured. Add Vercel Blob storage (BLOB_READ_WRITE_TOKEN) and redeploy before saving live content.",
+    });
   }
   next();
 }
@@ -398,7 +467,16 @@ app.get("/blog/:slug", (req, res) => {
 });
 
 app.get("/api/health", (req, res) => {
-  res.json({ ok: true, database: "sqlite", timestamp: new Date().toISOString() });
+  res.json({
+    ok: true,
+    database: "sqlite",
+    storage: {
+      durable: HAS_DURABLE_DATABASE,
+      mode: USE_BLOB_DATABASE ? "vercel-blob-snapshot" : IS_VERCEL ? "missing" : "local-file",
+      blobPath: USE_BLOB_DATABASE ? SQLITE_BLOB_PATH : null,
+    },
+    timestamp: new Date().toISOString(),
+  });
 });
 
 app.post("/api/admin/login", (req, res) => {
@@ -491,36 +569,41 @@ app.get("/api/posts/:slug", (req, res) => {
   });
 });
 
-app.post("/api/posts/:slug/comments", (req, res) => {
-  const slug = String(req.params.slug || "").trim();
-  const post = db
-    .prepare("SELECT * FROM posts WHERE slug = ? AND status = 'Published'")
-    .get(slug);
+app.post("/api/posts/:slug/comments", requireDurableStorage, async (req, res, next) => {
+  try {
+    const slug = String(req.params.slug || "").trim();
+    const post = db
+      .prepare("SELECT * FROM posts WHERE slug = ? AND status = 'Published'")
+      .get(slug);
 
-  if (!post) return res.status(404).json({ error: "Post not found" });
+    if (!post) return res.status(404).json({ error: "Post not found" });
 
-  const author = String(req.body.author || req.body.name || "").trim();
-  const email = String(req.body.email || "").trim();
-  const text = String(req.body.text || req.body.comment || "").trim();
+    const author = String(req.body.author || req.body.name || "").trim();
+    const email = String(req.body.email || "").trim();
+    const text = String(req.body.text || req.body.comment || "").trim();
 
-  if (!author || !email || !text) {
-    return res.status(400).json({ error: "name, email, and comment are required" });
+    if (!author || !email || !text) {
+      return res.status(400).json({ error: "name, email, and comment are required" });
+    }
+
+    const result = db
+      .prepare(
+        "INSERT INTO comments (post_id, author, email, text) VALUES (?, ?, ?, ?)",
+      )
+      .run(post.id, author, email, text);
+    await persistDatabaseToBlob();
+
+    res.status(201).json({
+      ok: true,
+      id: result.lastInsertRowid,
+      message: "Comment submitted for moderation.",
+    });
+  } catch (error) {
+    next(error);
   }
-
-  const result = db
-    .prepare(
-      "INSERT INTO comments (post_id, author, email, text) VALUES (?, ?, ?, ?)",
-    )
-    .run(post.id, author, email, text);
-
-  res.status(201).json({
-    ok: true,
-    id: result.lastInsertRowid,
-    message: "Comment submitted for moderation.",
-  });
 });
 
-app.post("/api/posts", requireAdmin, (req, res, next) => {
+app.post("/api/posts", requireAdmin, requireDurableStorage, async (req, res, next) => {
   try {
     const payload = postPayload(req.body);
     const result = db
@@ -533,13 +616,14 @@ app.post("/api/posts", requireAdmin, (req, res, next) => {
       )
       .run({ ...payload, supportingImagesJson: JSON.stringify(payload.supportingImages) });
     const row = db.prepare("SELECT * FROM posts WHERE id = ?").get(result.lastInsertRowid);
+    await persistDatabaseToBlob();
     res.status(201).json({ post: toPost(row) });
   } catch (error) {
     next(error);
   }
 });
 
-app.put("/api/posts/:id", requireAdmin, (req, res, next) => {
+app.put("/api/posts/:id", requireAdmin, requireDurableStorage, async (req, res, next) => {
   try {
     const id = Number(req.params.id);
     const existing = db.prepare("SELECT * FROM posts WHERE id = ?").get(id);
@@ -567,18 +651,24 @@ app.put("/api/posts/:id", requireAdmin, (req, res, next) => {
        WHERE id = @id`,
     ).run({ ...payload, supportingImagesJson: JSON.stringify(payload.supportingImages), id });
     const row = db.prepare("SELECT * FROM posts WHERE id = ?").get(id);
+    await persistDatabaseToBlob();
     res.json({ post: toPost(row) });
   } catch (error) {
     next(error);
   }
 });
 
-app.delete("/api/posts/:id", requireAdmin, (req, res) => {
-  const id = Number(req.params.id);
-  db.prepare("DELETE FROM comments WHERE post_id = ?").run(id);
-  const result = db.prepare("DELETE FROM posts WHERE id = ?").run(id);
-  if (result.changes === 0) return res.status(404).json({ error: "Post not found" });
-  res.status(204).end();
+app.delete("/api/posts/:id", requireAdmin, requireDurableStorage, async (req, res, next) => {
+  try {
+    const id = Number(req.params.id);
+    db.prepare("DELETE FROM comments WHERE post_id = ?").run(id);
+    const result = db.prepare("DELETE FROM posts WHERE id = ?").run(id);
+    if (result.changes === 0) return res.status(404).json({ error: "Post not found" });
+    await persistDatabaseToBlob();
+    res.status(204).end();
+  } catch (error) {
+    next(error);
+  }
 });
 
 app.get("/api/admin/comments", requireAdmin, (req, res) => {
@@ -594,58 +684,73 @@ app.get("/api/admin/comments", requireAdmin, (req, res) => {
   res.json({ comments });
 });
 
-app.put("/api/admin/comments/:id/approve", requireAdmin, (req, res) => {
-  const id = Number(req.params.id);
-  const result = db
-    .prepare(
-      "UPDATE comments SET status = 'Approved', updated_at = CURRENT_TIMESTAMP WHERE id = ?",
-    )
-    .run(id);
+app.put("/api/admin/comments/:id/approve", requireAdmin, requireDurableStorage, async (req, res, next) => {
+  try {
+    const id = Number(req.params.id);
+    const result = db
+      .prepare(
+        "UPDATE comments SET status = 'Approved', updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+      )
+      .run(id);
 
-  if (result.changes === 0) return res.status(404).json({ error: "Comment not found" });
+    if (result.changes === 0) return res.status(404).json({ error: "Comment not found" });
 
-  const row = db
-    .prepare(
-      `SELECT comments.*, posts.title AS post_title, posts.slug AS post_slug
-       FROM comments
-       JOIN posts ON posts.id = comments.post_id
-       WHERE comments.id = ?`,
-    )
-    .get(id);
-  res.json({ comment: toComment(row) });
+    const row = db
+      .prepare(
+        `SELECT comments.*, posts.title AS post_title, posts.slug AS post_slug
+         FROM comments
+         JOIN posts ON posts.id = comments.post_id
+         WHERE comments.id = ?`,
+      )
+      .get(id);
+    await persistDatabaseToBlob();
+    res.json({ comment: toComment(row) });
+  } catch (error) {
+    next(error);
+  }
 });
 
-app.post("/api/admin/comments/:id/reply", requireAdmin, (req, res) => {
-  const id = Number(req.params.id);
-  const reply = String(req.body.text || req.body.reply || "").trim();
+app.post("/api/admin/comments/:id/reply", requireAdmin, requireDurableStorage, async (req, res, next) => {
+  try {
+    const id = Number(req.params.id);
+    const reply = String(req.body.text || req.body.reply || "").trim();
 
-  if (!reply) return res.status(400).json({ error: "reply text is required" });
+    if (!reply) return res.status(400).json({ error: "reply text is required" });
 
-  const result = db
-    .prepare(
-      `UPDATE comments
-       SET reply = ?, status = 'Approved', updated_at = CURRENT_TIMESTAMP
-       WHERE id = ?`,
-    )
-    .run(reply, id);
+    const result = db
+      .prepare(
+        `UPDATE comments
+         SET reply = ?, status = 'Approved', updated_at = CURRENT_TIMESTAMP
+         WHERE id = ?`,
+      )
+      .run(reply, id);
 
-  if (result.changes === 0) return res.status(404).json({ error: "Comment not found" });
+    if (result.changes === 0) return res.status(404).json({ error: "Comment not found" });
 
-  const row = db
-    .prepare(
-      `SELECT comments.*, posts.title AS post_title, posts.slug AS post_slug
-       FROM comments
-       JOIN posts ON posts.id = comments.post_id
-       WHERE comments.id = ?`,
-    )
-    .get(id);
-  res.json({ comment: toComment(row) });
+    const row = db
+      .prepare(
+        `SELECT comments.*, posts.title AS post_title, posts.slug AS post_slug
+         FROM comments
+         JOIN posts ON posts.id = comments.post_id
+         WHERE comments.id = ?`,
+      )
+      .get(id);
+    await persistDatabaseToBlob();
+    res.json({ comment: toComment(row) });
+  } catch (error) {
+    next(error);
+  }
 });
 
-app.delete("/api/admin/comments/:id", requireAdmin, (req, res) => {
-  const result = db.prepare("DELETE FROM comments WHERE id = ?").run(Number(req.params.id));
-  if (result.changes === 0) return res.status(404).json({ error: "Comment not found" });
-  res.status(204).end();
+app.delete("/api/admin/comments/:id", requireAdmin, requireDurableStorage, async (req, res, next) => {
+  try {
+    const result = db.prepare("DELETE FROM comments WHERE id = ?").run(Number(req.params.id));
+    if (result.changes === 0) return res.status(404).json({ error: "Comment not found" });
+    await persistDatabaseToBlob();
+    res.status(204).end();
+  } catch (error) {
+    next(error);
+  }
 });
 
 app.post("/api/uploads", requireAdmin, upload.single("image"), async (req, res, next) => {
@@ -685,22 +790,27 @@ app.post("/api/uploads", requireAdmin, upload.single("image"), async (req, res, 
   }
 });
 
-app.post("/api/contacts", (req, res) => {
-  const name = String(req.body.name || "").trim();
-  const email = String(req.body.email || "").trim();
-  const message = String(req.body.message || "").trim();
+app.post("/api/contacts", requireDurableStorage, async (req, res, next) => {
+  try {
+    const name = String(req.body.name || "").trim();
+    const email = String(req.body.email || "").trim();
+    const message = String(req.body.message || "").trim();
 
-  if (!name || !email || !message) {
-    return res.status(400).json({ error: "name, email, and message are required" });
+    if (!name || !email || !message) {
+      return res.status(400).json({ error: "name, email, and message are required" });
+    }
+
+    const result = db
+      .prepare("INSERT INTO contacts (name, email, message) VALUES (?, ?, ?)")
+      .run(name, email, message);
+    await persistDatabaseToBlob();
+    res.status(201).json({ id: result.lastInsertRowid, ok: true });
+  } catch (error) {
+    next(error);
   }
-
-  const result = db
-    .prepare("INSERT INTO contacts (name, email, message) VALUES (?, ?, ?)")
-    .run(name, email, message);
-  res.status(201).json({ id: result.lastInsertRowid, ok: true });
 });
 
-app.post("/api/newsletter", (req, res, next) => {
+app.post("/api/newsletter", requireDurableStorage, async (req, res, next) => {
   try {
     const email = String(req.body.email || "").trim().toLowerCase();
     const source = String(req.body.source || "blog").trim() || "blog";
@@ -717,6 +827,7 @@ app.post("/api/newsletter", (req, res, next) => {
          status = 'Subscribed',
          updated_at = CURRENT_TIMESTAMP`,
     ).run({ email, source });
+    await persistDatabaseToBlob();
 
     res.status(201).json({
       ok: true,
