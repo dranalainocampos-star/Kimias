@@ -256,10 +256,9 @@ function getPostDisplayDate(post = {}) {
   const rawDateLower = rawDate.toLowerCase();
   const timestamp =
     parsePostTimestamp(rawDate) ||
-    (rawDateLower === "just now" ? parsePostTimestamp(post.createdAt) : null) ||
-    (!rawDate ? parsePostTimestamp(post.createdAt) : null);
+    (rawDateLower === "just now" || !rawDate ? parsePostTimestamp(post.createdAt) : null);
 
-  return timestamp ? formatRelativeDate(timestamp) : rawDate;
+  return timestamp ? formatExactPostDate(timestamp) : rawDate;
 }
 
 function hasRichHTML(value = "") {
@@ -340,11 +339,21 @@ function sanitizeRichHTML(value = "") {
     }
 
     const normalizedTag =
-      tag === "b" ? "strong" : tag === "i" ? "em" : tag;
+      tag === "b" ? "strong" : tag === "i" ? "em" : tag === "div" ? "p" : tag;
 
     if (!allowedTags.has(normalizedTag)) return children;
 
     const element = document.createElement(normalizedTag);
+    const textAlign = String(
+      node.style?.textAlign || node.getAttribute("align") || "",
+    ).toLowerCase();
+
+    if (
+      ["blockquote", "h2", "h3", "p"].includes(normalizedTag) &&
+      ["left", "center", "right"].includes(textAlign)
+    ) {
+      element.style.textAlign = textAlign;
+    }
 
     if (normalizedTag === "a") {
       const href = sanitizeRichHref(node.getAttribute("href"));
@@ -1055,26 +1064,30 @@ function renderApprovedComments(commentsList = []) {
     .join("");
 }
 
-function renderSupportingPhotoGallery(images = [], title = "") {
+function renderSupportingPhotoGallery(images = [], title = "", mainImage = "") {
   const gallery = document.getElementById("singlePostGallery");
-  if (!gallery) return;
+  if (!gallery) return 0;
+
+  const featuredImage = String(mainImage || "").trim();
 
   const supportingImages = Array.isArray(images)
-    ? images.map((image) => String(image || "").trim()).filter(Boolean)
+    ? [
+        ...new Set(
+          images
+            .map((image) => String(image || "").trim())
+            .filter((image) => image && image !== featuredImage),
+        ),
+      ]
     : [];
 
   if (!supportingImages.length) {
     gallery.classList.remove("is-visible");
     gallery.innerHTML = "";
-    return;
+    return 0;
   }
 
   gallery.classList.add("is-visible");
   gallery.innerHTML = `
-    <div class="single-post-gallery-heading">
-      <span>Supporting Photos</span>
-      <strong>${supportingImages.length}</strong>
-    </div>
     <div class="single-post-gallery-grid">
       ${supportingImages
         .map(
@@ -1092,6 +1105,7 @@ function renderSupportingPhotoGallery(images = [], title = "") {
         .join("")}
     </div>
   `;
+  return supportingImages.length;
 }
 
 function renderSinglePostPage(payload) {
@@ -1104,6 +1118,8 @@ function renderSinglePostPage(payload) {
   const content = document.getElementById("singlePostContent");
   const nav = document.getElementById("singlePostNav");
   const form = document.getElementById("commentForm");
+  const media = document.querySelector(".single-post-media");
+  const mainImage = post.image || BLOG_DEFAULT_IMAGE;
 
   document.title = `${post.title} | Kimia's Kravings`;
   if (title) title.textContent = post.title;
@@ -1115,17 +1131,29 @@ function renderSinglePostPage(payload) {
     `;
   }
   if (image) {
-    image.src = post.image || BLOG_DEFAULT_IMAGE;
+    image.src = mainImage;
     image.alt = post.title;
   }
   if (coverImage) {
-    coverImage.src = post.image || BLOG_DEFAULT_IMAGE;
+    coverImage.src = mainImage;
     coverImage.alt = "";
   }
   if (content) {
     content.innerHTML = formatPostContent(post.content || post.excerpt);
   }
-  renderSupportingPhotoGallery(post.supportingImages, post.title);
+  const supportingImageCount = renderSupportingPhotoGallery(
+    post.supportingImages,
+    post.title,
+    mainImage,
+  );
+  const hasSupportingImages = supportingImageCount > 0;
+  if (media) {
+    media.classList.toggle("has-supporting-photos", hasSupportingImages);
+  }
+  if (image) {
+    image.classList.toggle("is-hidden", hasSupportingImages);
+    image.setAttribute("aria-hidden", hasSupportingImages ? "true" : "false");
+  }
   if (nav) {
     nav.innerHTML = `
       ${renderPostNavItem(previous, "previous")}
@@ -1420,8 +1448,14 @@ function initNewsletterForm() {
   });
 }
 
+let savedEditorRange = null;
+
 function getPostContentEditor() {
   return document.getElementById("postContentEditor");
+}
+
+function getEditorBlockSelect() {
+  return document.querySelector("[data-editor-block]");
 }
 
 function syncRichEditorToTextarea(options = {}) {
@@ -1451,6 +1485,8 @@ function setRichEditorContent(value = "") {
 
   editor.innerHTML = content;
   input.value = content;
+  savedEditorRange = null;
+  updateEditorToolbarState();
 }
 
 function normalizeEditorLinks(editor) {
@@ -1475,6 +1511,12 @@ function ensureEditorSelection(editor) {
   }
   if (!selection) return;
 
+  if (savedEditorRange && editor.contains(savedEditorRange.commonAncestorContainer)) {
+    selection.removeAllRanges();
+    selection.addRange(savedEditorRange);
+    return;
+  }
+
   const range = document.createRange();
   range.selectNodeContents(editor);
   range.collapse(false);
@@ -1482,24 +1524,82 @@ function ensureEditorSelection(editor) {
   selection.addRange(range);
 }
 
+function saveEditorSelection() {
+  const editor = getPostContentEditor();
+  const selection = window.getSelection();
+  if (!editor || !selection || !selection.rangeCount) return;
+
+  const range = selection.getRangeAt(0);
+  if (editor.contains(range.commonAncestorContainer)) {
+    savedEditorRange = range.cloneRange();
+  }
+}
+
 function insertEditorHTML(html) {
   const editor = getPostContentEditor();
   if (!editor) return;
   ensureEditorSelection(editor);
   document.execCommand("insertHTML", false, html);
+  saveEditorSelection();
+}
+
+function getCurrentEditorBlockTag() {
+  const editor = getPostContentEditor();
+  const selection = window.getSelection();
+  if (!editor) return "p";
+
+  let node = null;
+  if (selection && selection.rangeCount && editor.contains(selection.anchorNode)) {
+    node = selection.anchorNode;
+  } else if (savedEditorRange && editor.contains(savedEditorRange.commonAncestorContainer)) {
+    node = savedEditorRange.commonAncestorContainer;
+  }
+
+  if (!node) return "p";
+  if (node.nodeType === Node.TEXT_NODE) node = node.parentElement;
+
+  while (node && node !== editor) {
+    const tag = node.tagName?.toLowerCase();
+    if (["blockquote", "h2", "h3", "p"].includes(tag)) return tag;
+    node = node.parentElement;
+  }
+
+  return "p";
 }
 
 function updateEditorToolbarState() {
   const editor = getPostContentEditor();
-  if (!editor || !document.activeElement) return;
+  if (!editor) return;
 
   const isEditorFocused =
     document.activeElement === editor || editor.contains(document.activeElement);
+  const blockTag = getCurrentEditorBlockTag();
+  const blockSelect = getEditorBlockSelect();
+
+  if (blockSelect) {
+    blockSelect.value = ["blockquote", "h2", "h3", "p"].includes(blockTag)
+      ? blockTag
+      : "p";
+  }
+
+  const stateCommands = {
+    bold: "bold",
+    italic: "italic",
+    ul: "insertUnorderedList",
+    ol: "insertOrderedList",
+    "align-left": "justifyLeft",
+    "align-center": "justifyCenter",
+    "align-right": "justifyRight",
+  };
 
   document.querySelectorAll("[data-editor-command]").forEach((button) => {
     const command = button.dataset.editorCommand;
-    const queryCommand =
-      command === "bold" ? "bold" : command === "italic" ? "italic" : "";
+    const queryCommand = stateCommands[command];
+
+    if (command === "blockquote") {
+      button.classList.toggle("is-active", blockTag === "blockquote");
+      return;
+    }
 
     if (!queryCommand || !isEditorFocused) {
       button.classList.remove("is-active");
@@ -1514,6 +1614,18 @@ function updateEditorToolbarState() {
   });
 }
 
+function applyEditorBlockStyle(blockTag) {
+  const editor = getPostContentEditor();
+  if (!editor) return;
+
+  editor.focus();
+  ensureEditorSelection(editor);
+  document.execCommand("formatBlock", false, blockTag);
+  syncRichEditorToTextarea();
+  saveEditorSelection();
+  updateEditorToolbarState();
+}
+
 function applyEditorCommand(command) {
   const editor = getPostContentEditor();
   if (!editor) return;
@@ -1521,16 +1633,16 @@ function applyEditorCommand(command) {
   editor.focus();
   ensureEditorSelection(editor);
 
-  if (command === "paragraph") {
-    document.execCommand("formatBlock", false, "p");
-  }
-
   if (command === "bold") {
     document.execCommand("bold");
   }
 
   if (command === "italic") {
     document.execCommand("italic");
+  }
+
+  if (command === "blockquote") {
+    document.execCommand("formatBlock", false, "blockquote");
   }
 
   if (command === "highlight") {
@@ -1563,6 +1675,10 @@ function applyEditorCommand(command) {
     normalizeEditorLinks(editor);
   }
 
+  if (command === "unlink") {
+    document.execCommand("unlink");
+  }
+
   if (command === "ul") {
     document.execCommand("insertUnorderedList");
   }
@@ -1571,11 +1687,28 @@ function applyEditorCommand(command) {
     document.execCommand("insertOrderedList");
   }
 
+  if (command === "align-left") {
+    document.execCommand("justifyLeft");
+  }
+
+  if (command === "align-center") {
+    document.execCommand("justifyCenter");
+  }
+
+  if (command === "align-right") {
+    document.execCommand("justifyRight");
+  }
+
   if (command === "clear") {
     document.execCommand("removeFormat");
   }
 
+  if (command === "keyboard") {
+    editor.focus();
+  }
+
   syncRichEditorToTextarea();
+  saveEditorSelection();
   updateEditorToolbarState();
 }
 
@@ -1590,20 +1723,40 @@ function initRichTextEditor() {
     // Browsers that ignore styleWithCSS still support the core editor commands.
   }
 
+  const blockSelect = getEditorBlockSelect();
+  if (blockSelect) {
+    blockSelect.addEventListener("mousedown", saveEditorSelection);
+    blockSelect.addEventListener("change", () => {
+      applyEditorBlockStyle(blockSelect.value || "p");
+    });
+  }
+
   document.querySelectorAll("[data-editor-command]").forEach((button) => {
-    button.addEventListener("mousedown", (event) => event.preventDefault());
+    button.addEventListener("mousedown", (event) => {
+      event.preventDefault();
+      saveEditorSelection();
+    });
     button.addEventListener("click", () => {
       applyEditorCommand(button.dataset.editorCommand);
     });
   });
 
-  editor.addEventListener("input", () => syncRichEditorToTextarea());
+  editor.addEventListener("input", () => {
+    syncRichEditorToTextarea();
+    saveEditorSelection();
+  });
   editor.addEventListener("blur", () => {
     syncRichEditorToTextarea({ cleanEditor: true });
     updateEditorToolbarState();
   });
-  editor.addEventListener("mouseup", updateEditorToolbarState);
-  editor.addEventListener("keyup", updateEditorToolbarState);
+  editor.addEventListener("mouseup", () => {
+    saveEditorSelection();
+    updateEditorToolbarState();
+  });
+  editor.addEventListener("keyup", () => {
+    saveEditorSelection();
+    updateEditorToolbarState();
+  });
 
   editor.addEventListener("keydown", (event) => {
     const commandKey = event.metaKey || event.ctrlKey;
@@ -1625,6 +1778,8 @@ function initRichTextEditor() {
 
     insertEditorHTML(cleanHTML || escapeHTML(text));
     syncRichEditorToTextarea();
+    saveEditorSelection();
+    updateEditorToolbarState();
   });
 }
 
@@ -2430,8 +2585,8 @@ async function savePostData() {
       content: content || plainTextToRichHTML("No description payload defined."),
       location: cat,
       categoryColor: getCategoryColorFromName(cat),
-      date: existingPost?.date || new Date().toISOString(),
-      createdAt: existingPost?.createdAt,
+      date: existingPost?.date || undefined,
+      createdAt: existingPost?.createdAt || undefined,
     };
 
     const result = await apiRequest(path, {

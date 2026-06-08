@@ -317,8 +317,8 @@ function postPayload(body) {
     content,
     excerpt: String(body.excerpt || content).trim(),
     publishedAt:
-      !publishedAtInput || (publishedAtInput.toLowerCase() === "just now" && !createdAtInput)
-        ? new Date().toISOString()
+      !publishedAtInput || publishedAtInput.toLowerCase() === "just now"
+        ? createdAtInput || new Date().toISOString()
         : publishedAtInput,
     status: String(body.status || "Draft").trim(),
   };

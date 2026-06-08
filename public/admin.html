@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Admin Dashboard | Kimia's Kravings</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -362,15 +364,18 @@
                 class="rich-editor-toolbar"
                 aria-label="Article formatting toolbar"
               >
-                <button
-                  type="button"
-                  class="editor-tool"
-                  data-editor-command="paragraph"
-                  aria-label="Paragraph"
-                  title="Paragraph"
+                <select
+                  id="editorBlockSelect"
+                  class="editor-format-select"
+                  data-editor-block
+                  aria-label="Text style"
+                  title="Text style"
                 >
-                  P
-                </button>
+                  <option value="p">Paragraph</option>
+                  <option value="h2">Heading</option>
+                  <option value="h3">Subheading</option>
+                  <option value="blockquote">Quote</option>
+                </select>
                 <button
                   type="button"
                   class="editor-tool"
@@ -391,30 +396,14 @@
                 </button>
                 <button
                   type="button"
-                  class="editor-tool editor-tool-wide"
-                  data-editor-command="highlight"
-                  aria-label="Highlight"
-                  title="Highlight"
-                >
-                  Highlight
-                </button>
-                <button
-                  type="button"
-                  class="editor-tool"
-                  data-editor-command="link"
-                  aria-label="Add link"
-                  title="Add link"
-                >
-                  Link
-                </button>
-                <button
-                  type="button"
                   class="editor-tool"
                   data-editor-command="ul"
                   aria-label="Bullet list"
                   title="Bullet list"
                 >
-                  List
+                  <span class="editor-icon editor-icon-list" aria-hidden="true">
+                    <span></span><span></span><span></span>
+                  </span>
                 </button>
                 <button
                   type="button"
@@ -423,16 +412,93 @@
                   aria-label="Numbered list"
                   title="Numbered list"
                 >
-                  1.
+                  <span class="editor-icon editor-icon-ordered" aria-hidden="true">
+                    <span>1</span><span>2</span><span>3</span>
+                  </span>
                 </button>
                 <button
                   type="button"
-                  class="editor-tool editor-tool-wide"
+                  class="editor-tool"
+                  data-editor-command="blockquote"
+                  aria-label="Quote"
+                  title="Quote"
+                >
+                  &ldquo;
+                </button>
+                <button
+                  type="button"
+                  class="editor-tool"
+                  data-editor-command="align-left"
+                  aria-label="Align left"
+                  title="Align left"
+                >
+                  <span class="editor-icon editor-icon-align left" aria-hidden="true">
+                    <span></span><span></span><span></span>
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  class="editor-tool"
+                  data-editor-command="align-center"
+                  aria-label="Align center"
+                  title="Align center"
+                >
+                  <span class="editor-icon editor-icon-align center" aria-hidden="true">
+                    <span></span><span></span><span></span>
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  class="editor-tool"
+                  data-editor-command="align-right"
+                  aria-label="Align right"
+                  title="Align right"
+                >
+                  <span class="editor-icon editor-icon-align right" aria-hidden="true">
+                    <span></span><span></span><span></span>
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  class="editor-tool"
+                  data-editor-command="link"
+                  aria-label="Add link"
+                  title="Add link"
+                >
+                  <span class="editor-icon editor-icon-chain" aria-hidden="true">
+                    <span></span><span></span>
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  class="editor-tool"
+                  data-editor-command="unlink"
+                  aria-label="Remove link"
+                  title="Remove link"
+                >
+                  <span class="editor-icon editor-icon-chain broken" aria-hidden="true">
+                    <span></span><span></span>
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  class="editor-tool"
                   data-editor-command="clear"
                   aria-label="Clear formatting"
                   title="Clear formatting"
                 >
-                  Clear
+                  Tx
+                </button>
+                <button
+                  type="button"
+                  class="editor-tool"
+                  data-editor-command="keyboard"
+                  aria-label="Focus editor"
+                  title="Focus editor"
+                >
+                  <span class="editor-icon editor-icon-keyboard" aria-hidden="true">
+                    <span></span><span></span><span></span>
+                  </span>
                 </button>
               </div>
               <div
