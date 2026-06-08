@@ -17,12 +17,14 @@ const DB_PATH =
 const UPLOADS_DIR =
   process.env.UPLOADS_DIR || (process.env.VERCEL ? "/tmp/uploads" : path.join(__dirname, "uploads"));
 const IS_VERCEL = Boolean(process.env.VERCEL);
-const HAS_BLOB_TOKEN = Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+const PUBLIC_BLOB_TOKEN = process.env.PUBLIC_BLOB_READ_WRITE_TOKEN || process.env.BLOB_READ_WRITE_TOKEN || "";
+const DATABASE_BLOB_TOKEN =
+  process.env.DATABASE_BLOB_READ_WRITE_TOKEN || process.env.SQLITE_BLOB_READ_WRITE_TOKEN || "";
 const SQLITE_BLOB_PATH = process.env.SQLITE_BLOB_PATH || "database/kimias-kravings.sqlite";
 const LOCAL_BLOB_SYNC = ["1", "true", "yes", "on"].includes(
   String(process.env.SQLITE_BLOB_SYNC || "").trim().toLowerCase(),
 );
-const USE_BLOB_DATABASE = HAS_BLOB_TOKEN && (IS_VERCEL || LOCAL_BLOB_SYNC);
+const USE_BLOB_DATABASE = Boolean(DATABASE_BLOB_TOKEN) && (IS_VERCEL || LOCAL_BLOB_SYNC);
 const HAS_DURABLE_DATABASE = !IS_VERCEL || USE_BLOB_DATABASE;
 
 async function restoreDatabaseFromBlob() {
@@ -31,14 +33,18 @@ async function restoreDatabaseFromBlob() {
   if (!USE_BLOB_DATABASE) {
     if (IS_VERCEL) {
       console.error(
-        "Production database persistence is not configured. Add BLOB_READ_WRITE_TOKEN before enabling live writes.",
+        "Production database persistence is not configured. Add DATABASE_BLOB_READ_WRITE_TOKEN before enabling live writes.",
       );
     }
     return;
   }
 
   try {
-    const snapshot = await get(SQLITE_BLOB_PATH, { access: "private", useCache: false });
+    const snapshot = await get(SQLITE_BLOB_PATH, {
+      access: "private",
+      token: DATABASE_BLOB_TOKEN,
+      useCache: false,
+    });
     if (!snapshot?.stream) {
       console.log(`No SQLite Blob snapshot found at ${SQLITE_BLOB_PATH}; bootstrapping a fresh database.`);
       return;
@@ -196,6 +202,7 @@ async function persistDatabaseToBlob() {
       allowOverwrite: true,
       cacheControlMaxAge: 60,
       contentType: "application/vnd.sqlite3",
+      token: DATABASE_BLOB_TOKEN,
     });
   });
 
@@ -355,7 +362,7 @@ function requireDurableStorage(req, res, next) {
   if (!HAS_DURABLE_DATABASE) {
     return res.status(503).json({
       error:
-        "Production database storage is not configured. Add Vercel Blob storage (BLOB_READ_WRITE_TOKEN) and redeploy before saving live content.",
+        "Production database storage is not configured. Add a private Vercel Blob store token as DATABASE_BLOB_READ_WRITE_TOKEN and redeploy before saving live content.",
     });
   }
   next();
@@ -474,6 +481,10 @@ app.get("/api/health", (req, res) => {
       durable: HAS_DURABLE_DATABASE,
       mode: USE_BLOB_DATABASE ? "vercel-blob-snapshot" : IS_VERCEL ? "missing" : "local-file",
       blobPath: USE_BLOB_DATABASE ? SQLITE_BLOB_PATH : null,
+    },
+    uploads: {
+      durable: !IS_VERCEL || Boolean(PUBLIC_BLOB_TOKEN),
+      mode: PUBLIC_BLOB_TOKEN ? "vercel-blob-public" : IS_VERCEL ? "missing" : "local-file",
     },
     timestamp: new Date().toISOString(),
   });
@@ -765,11 +776,12 @@ app.post("/api/uploads", requireAdmin, upload.single("image"), async (req, res, 
       .replace(/^-+|-+$/g, "");
     const filename = `${Date.now()}-${safeName || "blog-image.jpg"}`;
 
-    if (process.env.BLOB_READ_WRITE_TOKEN) {
+    if (PUBLIC_BLOB_TOKEN) {
       const blob = await put(`blog/${filename}`, req.file.buffer, {
         access: "public",
         addRandomSuffix: true,
         contentType: req.file.mimetype,
+        token: PUBLIC_BLOB_TOKEN,
       });
       return res.status(201).json({ url: blob.url, storage: "vercel-blob" });
     }
