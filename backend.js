@@ -4,6 +4,7 @@ import express from "express";
 import { get, put } from "@vercel/blob";
 import helmet from "helmet";
 import multer from "multer";
+import postgres from "postgres";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -12,6 +13,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const PORT = Number(process.env.PORT || 3000);
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN || "admin";
+const DATABASE_URL = process.env.DATABASE_URL || process.env.POSTGRES_URL || "";
 const DB_PATH =
   process.env.DATABASE_PATH || (process.env.VERCEL ? "/tmp/data.sqlite" : path.join(__dirname, "data.sqlite"));
 const UPLOADS_DIR =
@@ -24,16 +26,19 @@ const SQLITE_BLOB_PATH = process.env.SQLITE_BLOB_PATH || "database/kimias-kravin
 const LOCAL_BLOB_SYNC = ["1", "true", "yes", "on"].includes(
   String(process.env.SQLITE_BLOB_SYNC || "").trim().toLowerCase(),
 );
+const USE_POSTGRES_DATABASE = Boolean(DATABASE_URL);
 const USE_BLOB_DATABASE = Boolean(DATABASE_BLOB_TOKEN) && (IS_VERCEL || LOCAL_BLOB_SYNC);
-const HAS_DURABLE_DATABASE = !IS_VERCEL || USE_BLOB_DATABASE;
+const HAS_DURABLE_DATABASE = USE_POSTGRES_DATABASE || !IS_VERCEL || USE_BLOB_DATABASE;
 
 async function restoreDatabaseFromBlob() {
+  if (USE_POSTGRES_DATABASE) return;
+
   await fs.mkdir(path.dirname(DB_PATH), { recursive: true });
 
   if (!USE_BLOB_DATABASE) {
     if (IS_VERCEL) {
       console.error(
-        "Production database persistence is not configured. Add DATABASE_BLOB_READ_WRITE_TOKEN before enabling live writes.",
+        "Production database persistence is not configured. Add DATABASE_URL or DATABASE_BLOB_READ_WRITE_TOKEN before enabling live writes.",
       );
     }
     return;
@@ -58,8 +63,6 @@ async function restoreDatabaseFromBlob() {
     throw error;
   }
 }
-
-await restoreDatabaseFromBlob();
 
 const seedPosts = [
   {
@@ -185,13 +188,13 @@ const seedPosts = [
   },
 ];
 
-const db = new Database(DB_PATH);
-db.pragma("journal_mode = WAL");
+let db = null;
+let sql = null;
 
 let databasePersistQueue = Promise.resolve();
 
 async function persistDatabaseToBlob() {
-  if (!USE_BLOB_DATABASE) return;
+  if (!db || !USE_BLOB_DATABASE) return;
 
   databasePersistQueue = databasePersistQueue.catch(() => {}).then(async () => {
     db.pragma("wal_checkpoint(TRUNCATE)");
@@ -209,79 +212,191 @@ async function persistDatabaseToBlob() {
   await databasePersistQueue;
 }
 
-db.exec(`
-  CREATE TABLE IF NOT EXISTS posts (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    title TEXT NOT NULL,
-    category TEXT NOT NULL,
-    location TEXT NOT NULL DEFAULT '',
-    category_color TEXT NOT NULL DEFAULT 'sand',
-    image TEXT NOT NULL DEFAULT '',
-    supporting_images TEXT NOT NULL DEFAULT '[]',
-    slug TEXT NOT NULL UNIQUE,
-    content TEXT NOT NULL DEFAULT '',
-    excerpt TEXT NOT NULL DEFAULT '',
-    published_at TEXT NOT NULL DEFAULT '',
-    status TEXT NOT NULL DEFAULT 'Draft',
-    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+function initializeSqliteDatabase() {
+  db = new Database(DB_PATH);
+  db.pragma("journal_mode = WAL");
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS posts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      category TEXT NOT NULL,
+      location TEXT NOT NULL DEFAULT '',
+      category_color TEXT NOT NULL DEFAULT 'sand',
+      image TEXT NOT NULL DEFAULT '',
+      supporting_images TEXT NOT NULL DEFAULT '[]',
+      slug TEXT NOT NULL UNIQUE,
+      content TEXT NOT NULL DEFAULT '',
+      excerpt TEXT NOT NULL DEFAULT '',
+      published_at TEXT NOT NULL DEFAULT '',
+      status TEXT NOT NULL DEFAULT 'Draft',
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS comments (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      post_id INTEGER NOT NULL,
+      author TEXT NOT NULL,
+      email TEXT NOT NULL,
+      text TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'Pending',
+      reply TEXT NOT NULL DEFAULT '',
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_comments_post_id ON comments(post_id);
+    CREATE INDEX IF NOT EXISTS idx_comments_status ON comments(status);
+
+    CREATE TABLE IF NOT EXISTS contacts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      email TEXT NOT NULL,
+      message TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'Unread',
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS newsletter_subscribers (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      email TEXT NOT NULL UNIQUE,
+      source TEXT NOT NULL DEFAULT 'blog',
+      status TEXT NOT NULL DEFAULT 'Subscribed',
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+
+  const postColumns = db.prepare("PRAGMA table_info(posts)").all();
+  if (!postColumns.some((column) => column.name === "content")) {
+    db.exec("ALTER TABLE posts ADD COLUMN content TEXT NOT NULL DEFAULT ''");
+  }
+  if (!postColumns.some((column) => column.name === "supporting_images")) {
+    db.exec("ALTER TABLE posts ADD COLUMN supporting_images TEXT NOT NULL DEFAULT '[]'");
+  }
+  db.exec("UPDATE posts SET content = excerpt WHERE content = ''");
+
+  const insertSeedPost = db.prepare(`
+    INSERT OR IGNORE INTO posts (
+      title, category, location, category_color, image, slug, content, excerpt, published_at, status
+    ) VALUES (
+      @title, @category, @location, @categoryColor, @image, @slug, @content, @excerpt, @publishedAt, @status
+    )
+  `);
+  const seedMissingPosts = db.transaction((posts) =>
+    posts.forEach((post) => insertSeedPost.run({ ...post, content: post.content || post.excerpt })),
   );
-
-  CREATE TABLE IF NOT EXISTS comments (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    post_id INTEGER NOT NULL,
-    author TEXT NOT NULL,
-    email TEXT NOT NULL,
-    text TEXT NOT NULL,
-    status TEXT NOT NULL DEFAULT 'Pending',
-    reply TEXT NOT NULL DEFAULT '',
-    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-  );
-
-  CREATE INDEX IF NOT EXISTS idx_comments_post_id ON comments(post_id);
-  CREATE INDEX IF NOT EXISTS idx_comments_status ON comments(status);
-
-  CREATE TABLE IF NOT EXISTS contacts (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    email TEXT NOT NULL,
-    message TEXT NOT NULL,
-    status TEXT NOT NULL DEFAULT 'Unread',
-    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-  );
-
-  CREATE TABLE IF NOT EXISTS newsletter_subscribers (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    email TEXT NOT NULL UNIQUE,
-    source TEXT NOT NULL DEFAULT 'blog',
-    status TEXT NOT NULL DEFAULT 'Subscribed',
-    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-  );
-`);
-
-const postColumns = db.prepare("PRAGMA table_info(posts)").all();
-if (!postColumns.some((column) => column.name === "content")) {
-  db.exec("ALTER TABLE posts ADD COLUMN content TEXT NOT NULL DEFAULT ''");
+  seedMissingPosts(seedPosts);
 }
-if (!postColumns.some((column) => column.name === "supporting_images")) {
-  db.exec("ALTER TABLE posts ADD COLUMN supporting_images TEXT NOT NULL DEFAULT '[]'");
-}
-db.exec("UPDATE posts SET content = excerpt WHERE content = ''");
 
-const insertSeedPost = db.prepare(`
-  INSERT OR IGNORE INTO posts (
-    title, category, location, category_color, image, slug, content, excerpt, published_at, status
-  ) VALUES (
-    @title, @category, @location, @categoryColor, @image, @slug, @content, @excerpt, @publishedAt, @status
-  )
-`);
-const seedMissingPosts = db.transaction((posts) =>
-  posts.forEach((post) => insertSeedPost.run({ ...post, content: post.content || post.excerpt })),
-);
-seedMissingPosts(seedPosts);
-await persistDatabaseToBlob();
+function postgresSslOption() {
+  const override = String(process.env.POSTGRES_SSL || "").trim().toLowerCase();
+  if (["0", "false", "off", "disable", "disabled"].includes(override)) return false;
+  if (override) return "require";
+  return /(?:localhost|127\.0\.0\.1)/i.test(DATABASE_URL) ? false : "require";
+}
+
+async function initializePostgresDatabase() {
+  sql = postgres(DATABASE_URL, {
+    connect_timeout: 10,
+    idle_timeout: 20,
+    max: Number(process.env.POSTGRES_MAX_CONNECTIONS || 5),
+    prepare: false,
+    ssl: postgresSslOption(),
+  });
+
+  await sql`
+    CREATE TABLE IF NOT EXISTS posts (
+      id INTEGER GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+      title TEXT NOT NULL,
+      category TEXT NOT NULL,
+      location TEXT NOT NULL DEFAULT '',
+      category_color TEXT NOT NULL DEFAULT 'sand',
+      image TEXT NOT NULL DEFAULT '',
+      supporting_images TEXT NOT NULL DEFAULT '[]',
+      slug TEXT NOT NULL UNIQUE,
+      content TEXT NOT NULL DEFAULT '',
+      excerpt TEXT NOT NULL DEFAULT '',
+      published_at TEXT NOT NULL DEFAULT '',
+      status TEXT NOT NULL DEFAULT 'Draft',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `;
+
+  await sql`
+    CREATE TABLE IF NOT EXISTS comments (
+      id INTEGER GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+      post_id INTEGER NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+      author TEXT NOT NULL,
+      email TEXT NOT NULL,
+      text TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'Pending',
+      reply TEXT NOT NULL DEFAULT '',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `;
+
+  await sql`CREATE INDEX IF NOT EXISTS idx_comments_post_id ON comments(post_id)`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_comments_status ON comments(status)`;
+
+  await sql`
+    CREATE TABLE IF NOT EXISTS contacts (
+      id INTEGER GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+      name TEXT NOT NULL,
+      email TEXT NOT NULL,
+      message TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'Unread',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `;
+
+  await sql`
+    CREATE TABLE IF NOT EXISTS newsletter_subscribers (
+      id INTEGER GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+      email TEXT NOT NULL UNIQUE,
+      source TEXT NOT NULL DEFAULT 'blog',
+      status TEXT NOT NULL DEFAULT 'Subscribed',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `;
+
+  for (const post of seedPosts) {
+    await sql`
+      INSERT INTO posts (
+        title, category, location, category_color, image, slug, content, excerpt, published_at, status
+      ) VALUES (
+        ${post.title},
+        ${post.category},
+        ${post.location},
+        ${post.categoryColor},
+        ${post.image},
+        ${post.slug},
+        ${post.content || post.excerpt},
+        ${post.excerpt},
+        ${post.publishedAt},
+        ${post.status}
+      )
+      ON CONFLICT (slug) DO NOTHING
+    `;
+  }
+}
+
+async function initializeDatabase() {
+  if (USE_POSTGRES_DATABASE) {
+    await initializePostgresDatabase();
+    return;
+  }
+
+  await restoreDatabaseFromBlob();
+  initializeSqliteDatabase();
+  await persistDatabaseToBlob();
+}
+
+await initializeDatabase();
 
 function normalizeImageList(value) {
   let images = value;
@@ -307,6 +422,12 @@ function parseImageList(value) {
   return normalizeImageList(value);
 }
 
+function toApiTimestamp(value) {
+  if (!value) return "";
+  if (value instanceof Date) return value.toISOString();
+  return value;
+}
+
 function toPost(row) {
   return {
     id: row.id,
@@ -321,8 +442,8 @@ function toPost(row) {
     excerpt: row.excerpt,
     date: row.published_at,
     status: row.status,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
+    createdAt: toApiTimestamp(row.created_at),
+    updatedAt: toApiTimestamp(row.updated_at),
   };
 }
 
@@ -337,7 +458,7 @@ function toComment(row) {
     text: row.text,
     pending: row.status !== "Approved",
     status: row.status,
-    date: row.created_at,
+    date: toApiTimestamp(row.created_at),
     replies: row.reply ? [{ author: "Kimia", text: row.reply }] : [],
   };
 }
@@ -362,7 +483,7 @@ function requireDurableStorage(req, res, next) {
   if (!HAS_DURABLE_DATABASE) {
     return res.status(503).json({
       error:
-        "Production database storage is not configured. Add a private Vercel Blob store token as DATABASE_BLOB_READ_WRITE_TOKEN and redeploy before saving live content.",
+        "Production database storage is not configured. Add DATABASE_URL for Supabase Postgres or DATABASE_BLOB_READ_WRITE_TOKEN for SQLite Blob snapshots, then redeploy before saving live content.",
     });
   }
   next();
@@ -402,6 +523,383 @@ function postPayload(body) {
 
 function isValidEmail(value = "") {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value).trim());
+}
+
+async function persistAfterMutation() {
+  if (!USE_POSTGRES_DATABASE) {
+    await persistDatabaseToBlob();
+  }
+}
+
+async function listPosts(filters = {}) {
+  const status = String(filters.status || "").trim();
+  const category = String(filters.category || "").trim().toLowerCase();
+  const search = String(filters.search || "").trim().toLowerCase();
+
+  if (USE_POSTGRES_DATABASE) {
+    const params = [];
+    const where = [];
+
+    if (status) {
+      params.push(status);
+      where.push(`LOWER(status) = LOWER($${params.length})`);
+    }
+    if (category && category !== "all") {
+      params.push(category);
+      where.push(`LOWER(category) = $${params.length}`);
+    }
+    if (search) {
+      params.push(`%${search}%`);
+      const index = params.length;
+      where.push(
+        `(LOWER(title) LIKE $${index} OR LOWER(category) LIKE $${index} OR LOWER(location) LIKE $${index} OR LOWER(excerpt) LIKE $${index})`,
+      );
+    }
+
+    const query = `
+      SELECT *
+      FROM posts
+      ${where.length ? `WHERE ${where.join(" AND ")}` : ""}
+      ORDER BY id DESC
+    `;
+    return (await sql.unsafe(query, params)).map(toPost);
+  }
+
+  const params = {};
+  const where = [];
+
+  if (status) {
+    where.push("LOWER(status) = LOWER(@status)");
+    params.status = status;
+  }
+  if (category && category !== "all") {
+    where.push("LOWER(category) = @category");
+    params.category = category;
+  }
+  if (search) {
+    where.push(
+      "(LOWER(title) LIKE @search OR LOWER(category) LIKE @search OR LOWER(location) LIKE @search OR LOWER(excerpt) LIKE @search)",
+    );
+    params.search = `%${search}%`;
+  }
+
+  const query = `
+    SELECT *
+    FROM posts
+    ${where.length ? `WHERE ${where.join(" AND ")}` : ""}
+    ORDER BY id DESC
+  `;
+  return db.prepare(query).all(params).map(toPost);
+}
+
+async function getPostById(id) {
+  if (USE_POSTGRES_DATABASE) {
+    const rows = await sql`SELECT * FROM posts WHERE id = ${id}`;
+    return rows[0] || null;
+  }
+
+  return db.prepare("SELECT * FROM posts WHERE id = ?").get(id) || null;
+}
+
+async function getPublishedPostBySlug(slug) {
+  if (USE_POSTGRES_DATABASE) {
+    const rows = await sql`SELECT * FROM posts WHERE slug = ${slug} AND status = 'Published'`;
+    return rows[0] || null;
+  }
+
+  return db.prepare("SELECT * FROM posts WHERE slug = ? AND status = 'Published'").get(slug) || null;
+}
+
+async function listPublishedPosts() {
+  if (USE_POSTGRES_DATABASE) {
+    return (await sql`SELECT * FROM posts WHERE status = 'Published' ORDER BY id DESC`).map(toPost);
+  }
+
+  return db.prepare("SELECT * FROM posts WHERE status = 'Published' ORDER BY id DESC").all().map(toPost);
+}
+
+async function listApprovedCommentsForPost(postId) {
+  const query = `
+    SELECT comments.*, posts.title AS post_title, posts.slug AS post_slug
+    FROM comments
+    JOIN posts ON posts.id = comments.post_id
+    WHERE comments.post_id = $1 AND comments.status = 'Approved'
+    ORDER BY comments.id ASC
+  `;
+
+  if (USE_POSTGRES_DATABASE) {
+    return (await sql.unsafe(query, [postId])).map(toComment);
+  }
+
+  return db
+    .prepare(query.replaceAll("$1", "?"))
+    .all(postId)
+    .map(toComment);
+}
+
+async function getAdminCommentById(id) {
+  const query = `
+    SELECT comments.*, posts.title AS post_title, posts.slug AS post_slug
+    FROM comments
+    JOIN posts ON posts.id = comments.post_id
+    WHERE comments.id = $1
+  `;
+
+  if (USE_POSTGRES_DATABASE) {
+    const rows = await sql.unsafe(query, [id]);
+    return rows[0] || null;
+  }
+
+  return db.prepare(query.replaceAll("$1", "?")).get(id) || null;
+}
+
+async function createPost(payload) {
+  const supportingImagesJson = JSON.stringify(payload.supportingImages);
+
+  if (USE_POSTGRES_DATABASE) {
+    const rows = await sql`
+      INSERT INTO posts (
+        title, category, location, category_color, image, supporting_images, slug, content, excerpt, published_at, status
+      ) VALUES (
+        ${payload.title},
+        ${payload.category},
+        ${payload.location},
+        ${payload.categoryColor},
+        ${payload.image},
+        ${supportingImagesJson},
+        ${payload.slug},
+        ${payload.content},
+        ${payload.excerpt},
+        ${payload.publishedAt},
+        ${payload.status}
+      )
+      RETURNING *
+    `;
+    return toPost(rows[0]);
+  }
+
+  const result = db
+    .prepare(
+      `INSERT INTO posts (
+        title, category, location, category_color, image, supporting_images, slug, content, excerpt, published_at, status
+      ) VALUES (
+        @title, @category, @location, @categoryColor, @image, @supportingImagesJson, @slug, @content, @excerpt, @publishedAt, @status
+      )`,
+    )
+    .run({ ...payload, supportingImagesJson });
+  await persistAfterMutation();
+  return toPost(db.prepare("SELECT * FROM posts WHERE id = ?").get(result.lastInsertRowid));
+}
+
+async function updatePost(id, payload) {
+  const supportingImagesJson = JSON.stringify(payload.supportingImages);
+
+  if (USE_POSTGRES_DATABASE) {
+    const rows = await sql`
+      UPDATE posts
+      SET title = ${payload.title},
+          category = ${payload.category},
+          location = ${payload.location},
+          category_color = ${payload.categoryColor},
+          image = ${payload.image},
+          supporting_images = ${supportingImagesJson},
+          slug = ${payload.slug},
+          content = ${payload.content},
+          excerpt = ${payload.excerpt},
+          published_at = ${payload.publishedAt},
+          status = ${payload.status},
+          updated_at = now()
+      WHERE id = ${id}
+      RETURNING *
+    `;
+    return rows[0] ? toPost(rows[0]) : null;
+  }
+
+  db.prepare(
+    `UPDATE posts
+     SET title = @title,
+         category = @category,
+         location = @location,
+         category_color = @categoryColor,
+         image = @image,
+         supporting_images = @supportingImagesJson,
+         slug = @slug,
+         content = @content,
+         excerpt = @excerpt,
+         published_at = @publishedAt,
+         status = @status,
+         updated_at = CURRENT_TIMESTAMP
+     WHERE id = @id`,
+  ).run({ ...payload, supportingImagesJson, id });
+  await persistAfterMutation();
+  return toPost(db.prepare("SELECT * FROM posts WHERE id = ?").get(id));
+}
+
+async function deletePostById(id) {
+  if (USE_POSTGRES_DATABASE) {
+    const rows = await sql`DELETE FROM posts WHERE id = ${id} RETURNING id`;
+    return rows.length > 0;
+  }
+
+  db.prepare("DELETE FROM comments WHERE post_id = ?").run(id);
+  const result = db.prepare("DELETE FROM posts WHERE id = ?").run(id);
+  if (result.changes > 0) await persistAfterMutation();
+  return result.changes > 0;
+}
+
+async function createComment(postId, author, email, text) {
+  if (USE_POSTGRES_DATABASE) {
+    const rows = await sql`
+      INSERT INTO comments (post_id, author, email, text)
+      VALUES (${postId}, ${author}, ${email}, ${text})
+      RETURNING id
+    `;
+    return rows[0].id;
+  }
+
+  const result = db
+    .prepare("INSERT INTO comments (post_id, author, email, text) VALUES (?, ?, ?, ?)")
+    .run(postId, author, email, text);
+  await persistAfterMutation();
+  return result.lastInsertRowid;
+}
+
+async function listAdminComments() {
+  const query = `
+    SELECT comments.*, posts.title AS post_title, posts.slug AS post_slug
+    FROM comments
+    JOIN posts ON posts.id = comments.post_id
+    ORDER BY comments.id DESC
+  `;
+
+  if (USE_POSTGRES_DATABASE) {
+    return (await sql.unsafe(query)).map(toComment);
+  }
+
+  return db.prepare(query).all().map(toComment);
+}
+
+async function approveCommentById(id) {
+  if (USE_POSTGRES_DATABASE) {
+    const updated = await sql`
+      UPDATE comments
+      SET status = 'Approved', updated_at = now()
+      WHERE id = ${id}
+      RETURNING id
+    `;
+    return updated.length ? toComment(await getAdminCommentById(id)) : null;
+  }
+
+  const result = db
+    .prepare("UPDATE comments SET status = 'Approved', updated_at = CURRENT_TIMESTAMP WHERE id = ?")
+    .run(id);
+  if (result.changes === 0) return null;
+  await persistAfterMutation();
+  return toComment(await getAdminCommentById(id));
+}
+
+async function replyToCommentById(id, reply) {
+  if (USE_POSTGRES_DATABASE) {
+    const updated = await sql`
+      UPDATE comments
+      SET reply = ${reply}, status = 'Approved', updated_at = now()
+      WHERE id = ${id}
+      RETURNING id
+    `;
+    return updated.length ? toComment(await getAdminCommentById(id)) : null;
+  }
+
+  const result = db
+    .prepare(
+      `UPDATE comments
+       SET reply = ?, status = 'Approved', updated_at = CURRENT_TIMESTAMP
+       WHERE id = ?`,
+    )
+    .run(reply, id);
+  if (result.changes === 0) return null;
+  await persistAfterMutation();
+  return toComment(await getAdminCommentById(id));
+}
+
+async function deleteCommentById(id) {
+  if (USE_POSTGRES_DATABASE) {
+    const rows = await sql`DELETE FROM comments WHERE id = ${id} RETURNING id`;
+    return rows.length > 0;
+  }
+
+  const result = db.prepare("DELETE FROM comments WHERE id = ?").run(id);
+  if (result.changes > 0) await persistAfterMutation();
+  return result.changes > 0;
+}
+
+async function createContactMessage(name, email, message) {
+  if (USE_POSTGRES_DATABASE) {
+    const rows = await sql`
+      INSERT INTO contacts (name, email, message)
+      VALUES (${name}, ${email}, ${message})
+      RETURNING id
+    `;
+    return rows[0].id;
+  }
+
+  const result = db.prepare("INSERT INTO contacts (name, email, message) VALUES (?, ?, ?)").run(name, email, message);
+  await persistAfterMutation();
+  return result.lastInsertRowid;
+}
+
+async function subscribeNewsletter(email, source) {
+  if (USE_POSTGRES_DATABASE) {
+    await sql`
+      INSERT INTO newsletter_subscribers (email, source, status)
+      VALUES (${email}, ${source}, 'Subscribed')
+      ON CONFLICT(email) DO UPDATE SET
+        source = excluded.source,
+        status = 'Subscribed',
+        updated_at = now()
+    `;
+    return;
+  }
+
+  db.prepare(
+    `INSERT INTO newsletter_subscribers (email, source, status)
+     VALUES (@email, @source, 'Subscribed')
+     ON CONFLICT(email) DO UPDATE SET
+       source = excluded.source,
+       status = 'Subscribed',
+       updated_at = CURRENT_TIMESTAMP`,
+  ).run({ email, source });
+  await persistAfterMutation();
+}
+
+async function listContactMessages() {
+  const rows = USE_POSTGRES_DATABASE
+    ? await sql`SELECT * FROM contacts ORDER BY id DESC`
+    : db.prepare("SELECT * FROM contacts ORDER BY id DESC").all();
+
+  return rows.map((row) => ({
+    id: row.id,
+    sender: row.name,
+    email: row.email,
+    subject: "Contact Form Submission",
+    date: toApiTimestamp(row.created_at),
+    text: row.message,
+    unread: row.status === "Unread",
+  }));
+}
+
+async function listNewsletterSubscribers() {
+  const rows = USE_POSTGRES_DATABASE
+    ? await sql`SELECT * FROM newsletter_subscribers ORDER BY id DESC`
+    : db.prepare("SELECT * FROM newsletter_subscribers ORDER BY id DESC").all();
+
+  return rows.map((row) => ({
+    id: row.id,
+    email: row.email,
+    source: row.source,
+    status: row.status,
+    date: toApiTimestamp(row.created_at),
+    updatedAt: toApiTimestamp(row.updated_at),
+  }));
 }
 
 const app = express();
@@ -476,11 +974,17 @@ app.get("/blog/:slug", (req, res) => {
 app.get("/api/health", (req, res) => {
   res.json({
     ok: true,
-    database: "sqlite",
+    database: USE_POSTGRES_DATABASE ? "postgres" : "sqlite",
     storage: {
       durable: HAS_DURABLE_DATABASE,
-      mode: USE_BLOB_DATABASE ? "vercel-blob-snapshot" : IS_VERCEL ? "missing" : "local-file",
-      blobPath: USE_BLOB_DATABASE ? SQLITE_BLOB_PATH : null,
+      mode: USE_POSTGRES_DATABASE
+        ? "supabase-postgres"
+        : USE_BLOB_DATABASE
+          ? "vercel-blob-snapshot"
+          : IS_VERCEL
+            ? "missing"
+            : "local-file",
+      blobPath: !USE_POSTGRES_DATABASE && USE_BLOB_DATABASE ? SQLITE_BLOB_PATH : null,
     },
     uploads: {
       durable: !IS_VERCEL || Boolean(PUBLIC_BLOB_TOKEN),
@@ -498,94 +1002,59 @@ app.post("/api/admin/login", (req, res) => {
   res.json({ ok: true });
 });
 
-app.get("/api/posts", (req, res) => {
+app.get("/api/posts", async (req, res, next) => {
   const status = String(req.query.status || "").trim();
   const category = String(req.query.category || "").trim().toLowerCase();
   const search = String(req.query.search || "").trim().toLowerCase();
   const summary = ["1", "true", "yes"].includes(
     String(req.query.summary || "").trim().toLowerCase(),
   );
-  const params = {};
-  const where = [];
 
-  if (status) {
-    where.push("LOWER(status) = LOWER(@status)");
-    params.status = status;
+  try {
+    const posts = (await listPosts({ status, category, search })).map((post) => {
+      if (!summary) return post;
+      const summaryPost = { ...post };
+      delete summaryPost.content;
+      delete summaryPost.supportingImages;
+      return summaryPost;
+    });
+    res.json({ posts });
+  } catch (error) {
+    next(error);
   }
-  if (category && category !== "all") {
-    where.push("LOWER(category) = @category");
-    params.category = category;
-  }
-  if (search) {
-    where.push(
-      "(LOWER(title) LIKE @search OR LOWER(category) LIKE @search OR LOWER(location) LIKE @search OR LOWER(excerpt) LIKE @search)",
-    );
-    params.search = `%${search}%`;
-  }
-
-  const sql = `
-    SELECT ${
-      summary
-        ? "id, title, category, location, category_color, image, slug, excerpt, published_at, status, created_at, updated_at"
-        : "*"
-    } FROM posts
-    ${where.length ? `WHERE ${where.join(" AND ")}` : ""}
-    ORDER BY id DESC
-  `;
-  const posts = db.prepare(sql).all(params).map((row) => {
-    const post = toPost(row);
-    if (summary) {
-      delete post.content;
-      delete post.supportingImages;
-    }
-    return post;
-  });
-  res.json({ posts });
 });
 
-app.get("/api/posts/:slug", (req, res) => {
+app.get("/api/posts/:slug", async (req, res, next) => {
   const slug = String(req.params.slug || "").trim();
-  const row = db
-    .prepare("SELECT * FROM posts WHERE slug = ? AND status = 'Published'")
-    .get(slug);
+  try {
+    const row = await getPublishedPostBySlug(slug);
+    if (!row) return res.status(404).json({ error: "Post not found" });
 
-  if (!row) return res.status(404).json({ error: "Post not found" });
+    const post = toPost(row);
+    const publishedPosts = await listPublishedPosts();
+    const currentIndex = publishedPosts.findIndex((item) => item.slug === slug);
+    const previous = currentIndex > 0 ? publishedPosts[currentIndex - 1] : null;
+    const nextPost =
+      currentIndex > -1 && currentIndex < publishedPosts.length - 1
+        ? publishedPosts[currentIndex + 1]
+        : null;
+    const comments = await listApprovedCommentsForPost(row.id);
 
-  const publishedPosts = db
-    .prepare("SELECT * FROM posts WHERE status = 'Published' ORDER BY id DESC")
-    .all()
-    .map(toPost);
-  const currentIndex = publishedPosts.findIndex((post) => post.slug === slug);
-  const previous = currentIndex > 0 ? publishedPosts[currentIndex - 1] : null;
-  const next =
-    currentIndex > -1 && currentIndex < publishedPosts.length - 1
-      ? publishedPosts[currentIndex + 1]
-      : null;
-  const comments = db
-    .prepare(
-      `SELECT comments.*, posts.title AS post_title, posts.slug AS post_slug
-       FROM comments
-       JOIN posts ON posts.id = comments.post_id
-       WHERE comments.post_id = ? AND comments.status = 'Approved'
-       ORDER BY comments.id ASC`,
-    )
-    .all(row.id)
-    .map(toComment);
-
-  res.json({
-    post: toPost(row),
-    previous,
-    next,
-    comments,
-  });
+    res.json({
+      post,
+      previous,
+      next: nextPost,
+      comments,
+    });
+  } catch (error) {
+    next(error);
+  }
 });
 
 app.post("/api/posts/:slug/comments", requireDurableStorage, async (req, res, next) => {
   try {
     const slug = String(req.params.slug || "").trim();
-    const post = db
-      .prepare("SELECT * FROM posts WHERE slug = ? AND status = 'Published'")
-      .get(slug);
+    const post = await getPublishedPostBySlug(slug);
 
     if (!post) return res.status(404).json({ error: "Post not found" });
 
@@ -597,16 +1066,11 @@ app.post("/api/posts/:slug/comments", requireDurableStorage, async (req, res, ne
       return res.status(400).json({ error: "name, email, and comment are required" });
     }
 
-    const result = db
-      .prepare(
-        "INSERT INTO comments (post_id, author, email, text) VALUES (?, ?, ?, ?)",
-      )
-      .run(post.id, author, email, text);
-    await persistDatabaseToBlob();
+    const id = await createComment(post.id, author, email, text);
 
     res.status(201).json({
       ok: true,
-      id: result.lastInsertRowid,
+      id,
       message: "Comment submitted for moderation.",
     });
   } catch (error) {
@@ -617,18 +1081,8 @@ app.post("/api/posts/:slug/comments", requireDurableStorage, async (req, res, ne
 app.post("/api/posts", requireAdmin, requireDurableStorage, async (req, res, next) => {
   try {
     const payload = postPayload(req.body);
-    const result = db
-      .prepare(
-        `INSERT INTO posts (
-          title, category, location, category_color, image, supporting_images, slug, content, excerpt, published_at, status
-        ) VALUES (
-          @title, @category, @location, @categoryColor, @image, @supportingImagesJson, @slug, @content, @excerpt, @publishedAt, @status
-        )`,
-      )
-      .run({ ...payload, supportingImagesJson: JSON.stringify(payload.supportingImages) });
-    const row = db.prepare("SELECT * FROM posts WHERE id = ?").get(result.lastInsertRowid);
-    await persistDatabaseToBlob();
-    res.status(201).json({ post: toPost(row) });
+    const post = await createPost(payload);
+    res.status(201).json({ post });
   } catch (error) {
     next(error);
   }
@@ -637,7 +1091,7 @@ app.post("/api/posts", requireAdmin, requireDurableStorage, async (req, res, nex
 app.put("/api/posts/:id", requireAdmin, requireDurableStorage, async (req, res, next) => {
   try {
     const id = Number(req.params.id);
-    const existing = db.prepare("SELECT * FROM posts WHERE id = ?").get(id);
+    const existing = await getPostById(id);
     if (!existing) return res.status(404).json({ error: "Post not found" });
 
     const payload = postPayload({
@@ -645,25 +1099,9 @@ app.put("/api/posts/:id", requireAdmin, requireDurableStorage, async (req, res, 
       ...req.body,
       slug: req.body.slug || existing.slug,
     });
-    db.prepare(
-      `UPDATE posts
-       SET title = @title,
-           category = @category,
-           location = @location,
-           category_color = @categoryColor,
-           image = @image,
-           supporting_images = @supportingImagesJson,
-           slug = @slug,
-           content = @content,
-           excerpt = @excerpt,
-           published_at = @publishedAt,
-           status = @status,
-           updated_at = CURRENT_TIMESTAMP
-       WHERE id = @id`,
-    ).run({ ...payload, supportingImagesJson: JSON.stringify(payload.supportingImages), id });
-    const row = db.prepare("SELECT * FROM posts WHERE id = ?").get(id);
-    await persistDatabaseToBlob();
-    res.json({ post: toPost(row) });
+    const post = await updatePost(id, payload);
+    if (!post) return res.status(404).json({ error: "Post not found" });
+    res.json({ post });
   } catch (error) {
     next(error);
   }
@@ -672,50 +1110,29 @@ app.put("/api/posts/:id", requireAdmin, requireDurableStorage, async (req, res, 
 app.delete("/api/posts/:id", requireAdmin, requireDurableStorage, async (req, res, next) => {
   try {
     const id = Number(req.params.id);
-    db.prepare("DELETE FROM comments WHERE post_id = ?").run(id);
-    const result = db.prepare("DELETE FROM posts WHERE id = ?").run(id);
-    if (result.changes === 0) return res.status(404).json({ error: "Post not found" });
-    await persistDatabaseToBlob();
+    const deleted = await deletePostById(id);
+    if (!deleted) return res.status(404).json({ error: "Post not found" });
     res.status(204).end();
   } catch (error) {
     next(error);
   }
 });
 
-app.get("/api/admin/comments", requireAdmin, (req, res) => {
-  const comments = db
-    .prepare(
-      `SELECT comments.*, posts.title AS post_title, posts.slug AS post_slug
-       FROM comments
-       JOIN posts ON posts.id = comments.post_id
-       ORDER BY comments.id DESC`,
-    )
-    .all()
-    .map(toComment);
-  res.json({ comments });
+app.get("/api/admin/comments", requireAdmin, async (req, res, next) => {
+  try {
+    const comments = await listAdminComments();
+    res.json({ comments });
+  } catch (error) {
+    next(error);
+  }
 });
 
 app.put("/api/admin/comments/:id/approve", requireAdmin, requireDurableStorage, async (req, res, next) => {
   try {
     const id = Number(req.params.id);
-    const result = db
-      .prepare(
-        "UPDATE comments SET status = 'Approved', updated_at = CURRENT_TIMESTAMP WHERE id = ?",
-      )
-      .run(id);
-
-    if (result.changes === 0) return res.status(404).json({ error: "Comment not found" });
-
-    const row = db
-      .prepare(
-        `SELECT comments.*, posts.title AS post_title, posts.slug AS post_slug
-         FROM comments
-         JOIN posts ON posts.id = comments.post_id
-         WHERE comments.id = ?`,
-      )
-      .get(id);
-    await persistDatabaseToBlob();
-    res.json({ comment: toComment(row) });
+    const comment = await approveCommentById(id);
+    if (!comment) return res.status(404).json({ error: "Comment not found" });
+    res.json({ comment });
   } catch (error) {
     next(error);
   }
@@ -728,26 +1145,9 @@ app.post("/api/admin/comments/:id/reply", requireAdmin, requireDurableStorage, a
 
     if (!reply) return res.status(400).json({ error: "reply text is required" });
 
-    const result = db
-      .prepare(
-        `UPDATE comments
-         SET reply = ?, status = 'Approved', updated_at = CURRENT_TIMESTAMP
-         WHERE id = ?`,
-      )
-      .run(reply, id);
-
-    if (result.changes === 0) return res.status(404).json({ error: "Comment not found" });
-
-    const row = db
-      .prepare(
-        `SELECT comments.*, posts.title AS post_title, posts.slug AS post_slug
-         FROM comments
-         JOIN posts ON posts.id = comments.post_id
-         WHERE comments.id = ?`,
-      )
-      .get(id);
-    await persistDatabaseToBlob();
-    res.json({ comment: toComment(row) });
+    const comment = await replyToCommentById(id, reply);
+    if (!comment) return res.status(404).json({ error: "Comment not found" });
+    res.json({ comment });
   } catch (error) {
     next(error);
   }
@@ -755,9 +1155,8 @@ app.post("/api/admin/comments/:id/reply", requireAdmin, requireDurableStorage, a
 
 app.delete("/api/admin/comments/:id", requireAdmin, requireDurableStorage, async (req, res, next) => {
   try {
-    const result = db.prepare("DELETE FROM comments WHERE id = ?").run(Number(req.params.id));
-    if (result.changes === 0) return res.status(404).json({ error: "Comment not found" });
-    await persistDatabaseToBlob();
+    const deleted = await deleteCommentById(Number(req.params.id));
+    if (!deleted) return res.status(404).json({ error: "Comment not found" });
     res.status(204).end();
   } catch (error) {
     next(error);
@@ -812,11 +1211,8 @@ app.post("/api/contacts", requireDurableStorage, async (req, res, next) => {
       return res.status(400).json({ error: "name, email, and message are required" });
     }
 
-    const result = db
-      .prepare("INSERT INTO contacts (name, email, message) VALUES (?, ?, ?)")
-      .run(name, email, message);
-    await persistDatabaseToBlob();
-    res.status(201).json({ id: result.lastInsertRowid, ok: true });
+    const id = await createContactMessage(name, email, message);
+    res.status(201).json({ id, ok: true });
   } catch (error) {
     next(error);
   }
@@ -831,15 +1227,7 @@ app.post("/api/newsletter", requireDurableStorage, async (req, res, next) => {
       return res.status(400).json({ error: "Enter a valid email address." });
     }
 
-    db.prepare(
-      `INSERT INTO newsletter_subscribers (email, source, status)
-       VALUES (@email, @source, 'Subscribed')
-       ON CONFLICT(email) DO UPDATE SET
-         source = excluded.source,
-         status = 'Subscribed',
-         updated_at = CURRENT_TIMESTAMP`,
-    ).run({ email, source });
-    await persistDatabaseToBlob();
+    await subscribeNewsletter(email, source);
 
     res.status(201).json({
       ok: true,
@@ -850,35 +1238,22 @@ app.post("/api/newsletter", requireDurableStorage, async (req, res, next) => {
   }
 });
 
-app.get("/api/admin/messages", requireAdmin, (req, res) => {
-  const messages = db
-    .prepare("SELECT * FROM contacts ORDER BY id DESC")
-    .all()
-    .map((row) => ({
-      id: row.id,
-      sender: row.name,
-      email: row.email,
-      subject: "Contact Form Submission",
-      date: row.created_at,
-      text: row.message,
-      unread: row.status === "Unread",
-    }));
-  res.json({ messages });
+app.get("/api/admin/messages", requireAdmin, async (req, res, next) => {
+  try {
+    const messages = await listContactMessages();
+    res.json({ messages });
+  } catch (error) {
+    next(error);
+  }
 });
 
-app.get("/api/admin/newsletter", requireAdmin, (req, res) => {
-  const subscribers = db
-    .prepare("SELECT * FROM newsletter_subscribers ORDER BY id DESC")
-    .all()
-    .map((row) => ({
-      id: row.id,
-      email: row.email,
-      source: row.source,
-      status: row.status,
-      date: row.created_at,
-      updatedAt: row.updated_at,
-    }));
-  res.json({ subscribers });
+app.get("/api/admin/newsletter", requireAdmin, async (req, res, next) => {
+  try {
+    const subscribers = await listNewsletterSubscribers();
+    res.json({ subscribers });
+  } catch (error) {
+    next(error);
+  }
 });
 
 app.use(
