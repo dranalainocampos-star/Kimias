@@ -26,6 +26,15 @@
   padding: 0;
 }
 
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 96px;
+}
+
+:target {
+  scroll-margin-top: 96px;
+}
+
 body {
   background-color: var(--diabla-light-grey);
   color: var(--diabla-anthracite);
@@ -71,6 +80,12 @@ img {
 ::selection {
   background-color: var(--diabla-red);
   color: var(--diabla-white);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 /* =========================================
