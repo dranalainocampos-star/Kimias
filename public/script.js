@@ -3,6 +3,8 @@ const BLOG_BATCH_SIZE = 6;
 const ADMIN_REFRESH_INTERVAL_MS = 15000;
 const BLOG_DEFAULT_IMAGE =
   "https://images.unsplash.com/photo-1504674900247-0877df9cc836?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1200";
+const LAZY_IMAGE_PLACEHOLDER =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 3'%3E%3C/svg%3E";
 
 let blogData = [
   {
@@ -174,6 +176,7 @@ const categoryColorClassMap = {
 
 const blogRenderState = new Map();
 let fadeUpObserver = null;
+let deferredImageObserver = null;
 let postDataVersion = 0;
 
 function escapeHTML(value = "") {
@@ -735,6 +738,50 @@ function observeFadeUpNodes(nodes) {
   });
 }
 
+function loadDeferredImage(image) {
+  const src = image.dataset.src;
+  if (!src) return;
+
+  image.src = src;
+  image.removeAttribute("data-src");
+}
+
+function initDeferredImages(nodes = [document]) {
+  const roots =
+    nodes instanceof NodeList || Array.isArray(nodes)
+      ? Array.from(nodes)
+      : [nodes];
+  const images = [];
+
+  roots.forEach((root) => {
+    if (!root) return;
+    if (root.matches?.("img[data-src]")) images.push(root);
+    root.querySelectorAll?.("img[data-src]").forEach((image) => images.push(image));
+  });
+
+  if (!images.length) return;
+
+  if (!("IntersectionObserver" in window)) {
+    images.forEach(loadDeferredImage);
+    return;
+  }
+
+  if (!deferredImageObserver) {
+    deferredImageObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          loadDeferredImage(entry.target);
+          deferredImageObserver.unobserve(entry.target);
+        });
+      },
+      { rootMargin: "280px 0px", threshold: 0.01 },
+    );
+  }
+
+  images.forEach((image) => deferredImageObserver.observe(image));
+}
+
 function initCountUp() {
   const counters = document.querySelectorAll("[data-count]");
   if (!counters.length) return;
@@ -894,9 +941,10 @@ function renderHomeBlogCard(post, index) {
       <div class="card-img-container">
         <span class="card-label ${getCategoryColorClass(post)}">${escapeHTML(post.category)}</span>
         <img
-          src="${escapeHTML(post.image)}"
+          src="${LAZY_IMAGE_PLACEHOLDER}"
+          data-src="${escapeHTML(post.image)}"
           alt="${escapeHTML(post.title)}"
-          class="w-full h-full object-cover"
+          class="w-full h-full object-cover js-deferred-image"
           loading="lazy"
           decoding="async"
         />
@@ -917,8 +965,10 @@ function renderArchiveBlogCard(post, index) {
       <div class="post-card-img">
         <span class="post-cat-label ${getCategoryColorClass(post)}">${escapeHTML(post.category)}</span>
         <img
-          src="${escapeHTML(post.image)}"
+          src="${LAZY_IMAGE_PLACEHOLDER}"
+          data-src="${escapeHTML(post.image)}"
           alt="${escapeHTML(post.title)}"
+          class="js-deferred-image"
           loading="lazy"
           decoding="async"
         />
@@ -941,6 +991,7 @@ function renderArchiveBlogCard(post, index) {
 
 function hydrateDynamicBlogNodes(nodes) {
   observeFadeUpNodes(nodes);
+  initDeferredImages(nodes);
 
   requestAnimationFrame(() => {
     nodes.forEach((node) => {
