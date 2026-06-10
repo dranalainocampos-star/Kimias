@@ -557,15 +557,21 @@ function applyLoadedPostData(loadedPosts = [], options = {}) {
   }));
 }
 
+function pageNeedsInitialPostData() {
+  return (
+    document.body.classList.contains("page-index") ||
+    document.body.classList.contains("page-blog")
+  );
+}
+
 async function loadInitialData() {
-  const isAdminPage = document.body.classList.contains("page-admin");
+  if (!pageNeedsInitialPostData()) return;
+
   const requestVersion = postDataVersion;
 
   try {
-    const payload = await apiRequest(isAdminPage ? "/posts" : "/posts?summary=1");
-    if (isAdminPage && requestVersion !== postDataVersion) {
-      return;
-    }
+    const payload = await apiRequest("/posts?summary=1");
+    if (requestVersion !== postDataVersion) return;
     applyLoadedPostData(payload.posts, {
       padHomeFeatured: document.body.classList.contains("page-index"),
     });

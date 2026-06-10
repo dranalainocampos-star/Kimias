@@ -1,9 +1,8 @@
-node_modules/
+.env
+.vercel
 data.sqlite
 data.sqlite-shm
 data.sqlite-wal
-uploads/
-.env
-.DS_Store
-.vercel
+node_modules
+uploads
 60601BFE-1928-4F54-91C7-631FA79306E8.jpg
