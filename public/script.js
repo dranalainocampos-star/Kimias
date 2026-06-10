@@ -570,7 +570,7 @@ async function loadInitialData() {
   const requestVersion = postDataVersion;
 
   try {
-    const payload = await apiRequest("/posts?summary=1");
+    const payload = await apiRequest("/posts?summary=1&status=Published");
     if (requestVersion !== postDataVersion) return;
     applyLoadedPostData(payload.posts, {
       padHomeFeatured: document.body.classList.contains("page-index"),

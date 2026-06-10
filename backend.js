@@ -1020,6 +1020,12 @@ app.get("/api/posts", async (req, res, next) => {
   );
 
   try {
+    if (summary) {
+      res.setHeader("Cache-Control", "public, s-maxage=60, stale-while-revalidate=300");
+    } else {
+      res.setHeader("Cache-Control", "no-store");
+    }
+
     const posts = (await listPosts({ status, category, search, summary })).map((post) => {
       if (!summary) return post;
       const summaryPost = { ...post };
