@@ -5,6 +5,7 @@ import { get, put } from "@vercel/blob";
 import helmet from "helmet";
 import multer from "multer";
 import postgres from "postgres";
+import sharp from "sharp";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -927,6 +928,40 @@ const upload = multer({
   },
 });
 
+async function prepareUploadedImage(file, safeName) {
+  const timestamp = Date.now();
+  const baseName = path.parse(safeName || "blog-image").name || "blog-image";
+
+  try {
+    const buffer = await sharp(file.buffer, { failOn: "none" })
+      .rotate()
+      .resize({
+        width: 1600,
+        height: 1600,
+        fit: "inside",
+        withoutEnlargement: true,
+      })
+      .jpeg({
+        quality: 82,
+        mozjpeg: true,
+      })
+      .toBuffer();
+
+    return {
+      buffer,
+      contentType: "image/jpeg",
+      filename: `${timestamp}-${baseName}.jpg`,
+    };
+  } catch (error) {
+    console.warn("Image optimization failed, storing original upload:", error.message);
+    return {
+      buffer: file.buffer,
+      contentType: file.mimetype,
+      filename: `${timestamp}-${safeName || "blog-image.jpg"}`,
+    };
+  }
+}
+
 app.use(
   helmet({
     contentSecurityPolicy: false,
@@ -1188,13 +1223,13 @@ app.post("/api/uploads", requireAdmin, upload.single("image"), async (req, res, 
       .toLowerCase()
       .replace(/[^a-z0-9.]+/g, "-")
       .replace(/^-+|-+$/g, "");
-    const filename = `${Date.now()}-${safeName || "blog-image.jpg"}`;
+    const optimizedImage = await prepareUploadedImage(req.file, safeName);
 
     if (PUBLIC_BLOB_TOKEN) {
-      const blob = await put(`blog/${filename}`, req.file.buffer, {
+      const blob = await put(`blog/${optimizedImage.filename}`, optimizedImage.buffer, {
         access: "public",
         addRandomSuffix: true,
-        contentType: req.file.mimetype,
+        contentType: optimizedImage.contentType,
         token: PUBLIC_BLOB_TOKEN,
       });
       return res.status(201).json({ url: blob.url, storage: "vercel-blob" });
@@ -1208,9 +1243,9 @@ app.post("/api/uploads", requireAdmin, upload.single("image"), async (req, res, 
     }
 
     await fs.mkdir(UPLOADS_DIR, { recursive: true });
-    const localPath = path.join(UPLOADS_DIR, filename);
-    await fs.writeFile(localPath, req.file.buffer);
-    res.status(201).json({ url: `/uploads/${filename}`, storage: "local" });
+    const localPath = path.join(UPLOADS_DIR, optimizedImage.filename);
+    await fs.writeFile(localPath, optimizedImage.buffer);
+    res.status(201).json({ url: `/uploads/${optimizedImage.filename}`, storage: "local" });
   } catch (error) {
     next(error);
   }

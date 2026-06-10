@@ -11222,8 +11222,8 @@ body * {
     height 0.15s ease,
     background-color 0.15s ease,
     border-color 0.15s ease,
-    opacity 0.15s ease,
-    transform 0.12s ease !important;
+    opacity 0.15s ease !important;
+  will-change: transform, opacity;
   width: 10px !important;
   z-index: 9999 !important;
 }

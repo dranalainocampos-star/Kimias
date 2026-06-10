@@ -609,10 +609,30 @@ function initPaintCursor() {
 
   if (canvas) canvas.hidden = true;
 
-  window.addEventListener("mousemove", (event) => {
-    dot.style.left = event.clientX + "px";
-    dot.style.top = event.clientY + "px";
+  const hoverSelector =
+    "a, button, .btn, .card, .post-card, .does-item, .service-card, .dna-cell, .nav-item, .logout-btn, .login-btn, .filter-tab";
+  const redSurfaceSelector =
+    ".book-section, .featured-in, .cta-band, .partnership-cta, .page-contact .channels-card, .page-consulting .cons-hero";
+  let cursorX = 0;
+  let cursorY = 0;
+  let cursorTarget = null;
+  let cursorRaf = null;
+
+  const syncCursor = () => {
+    cursorRaf = null;
+    dot.style.transform = `translate3d(${cursorX}px, ${cursorY}px, 0) translate(-50%, -50%)`;
     dot.classList.add("is-visible");
+    dot.classList.toggle(
+      "on-red-surface",
+      Boolean(cursorTarget?.closest(redSurfaceSelector)),
+    );
+  };
+
+  window.addEventListener("pointermove", (event) => {
+    cursorX = event.clientX;
+    cursorY = event.clientY;
+    cursorTarget = event.target instanceof Element ? event.target : null;
+    if (!cursorRaf) cursorRaf = requestAnimationFrame(syncCursor);
   }, { passive: true });
 
   window.addEventListener("mousedown", () => {
@@ -620,19 +640,6 @@ function initPaintCursor() {
   });
 
   window.addEventListener("mouseup", () => dot.classList.remove("clicking"));
-
-  const hoverSelector =
-    "a, button, .btn, .card, .post-card, .does-item, .service-card, .dna-cell, .nav-item, .logout-btn, .login-btn, .filter-tab";
-  const redSurfaceSelector =
-    ".book-section, .featured-in, .cta-band, .partnership-cta, .page-contact .channels-card, .page-consulting .cons-hero";
-
-  document.addEventListener("mousemove", (event) => {
-    const target = event.target instanceof Element ? event.target : null;
-    dot.classList.toggle(
-      "on-red-surface",
-      Boolean(target?.closest(redSurfaceSelector)),
-    );
-  }, { passive: true });
 
   document.addEventListener("mouseover", (event) => {
     if (event.target.closest(hoverSelector)) dot.classList.add("hover");
@@ -1910,14 +1917,12 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   runWhenIdle(() => {
     initCountUp();
-    initCardTilt();
   });
 
   await initialDataPromise;
   initBlogPagination();
   await initSinglePostPage();
   initBlogFilters();
-  runWhenIdle(initGsapEnhancements, 1800);
 });
 
 async function dispatchFormPayload(event) {
