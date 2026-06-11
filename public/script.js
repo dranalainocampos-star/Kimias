@@ -623,7 +623,11 @@ function initPaintCursor() {
 
   const syncCursor = () => {
     cursorRaf = null;
-    dot.style.transform = `translate3d(${cursorX}px, ${cursorY}px, 0) translate(-50%, -50%)`;
+    dot.style.setProperty(
+      "transform",
+      `translate3d(${cursorX}px, ${cursorY}px, 0) translate(-50%, -50%)`,
+      "important",
+    );
     dot.classList.add("is-visible");
     dot.classList.toggle(
       "on-red-surface",
