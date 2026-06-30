@@ -495,6 +495,25 @@ function requireDurableStorage(req, res, next) {
   next();
 }
 
+function requireCronRequest(req, res, next) {
+  const cronSecret = process.env.CRON_SECRET || "";
+  const authorization = req.get("authorization") || "";
+  const userAgent = req.get("user-agent") || "";
+
+  if (cronSecret) {
+    if (authorization !== `Bearer ${cronSecret}`) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    return next();
+  }
+
+  if (IS_VERCEL && !userAgent.toLowerCase().includes("vercel-cron")) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  next();
+}
+
 function postPayload(body) {
   const title = String(body.title || "").trim();
   const category = String(body.category || "").trim();
@@ -1036,6 +1055,22 @@ app.get("/api/health", (req, res) => {
     },
     timestamp: new Date().toISOString(),
   });
+});
+
+app.get("/api/keepalive", requireCronRequest, async (req, res, next) => {
+  try {
+    res.setHeader("Cache-Control", "no-store");
+    const posts = await listPosts({ status: "Published", summary: true });
+
+    res.json({
+      ok: true,
+      database: USE_POSTGRES_DATABASE ? "postgres" : "sqlite",
+      postCount: posts.length,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    next(error);
+  }
 });
 
 app.post("/api/admin/login", (req, res) => {
