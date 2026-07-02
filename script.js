@@ -1,4 +1,5 @@
 const API_BASE = "/api";
+const SITE_URL = "https://kimiakalbasi.com";
 const BLOG_BATCH_SIZE = 6;
 const ADMIN_REFRESH_INTERVAL_MS = 15000;
 const BLOG_DEFAULT_IMAGE =
@@ -1246,6 +1247,44 @@ function renderSupportingPhotoGallery(images = [], title = "", mainImage = "") {
   return supportingImages.length;
 }
 
+function resolveAbsoluteUrl(value = "") {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+
+  try {
+    return new URL(raw, SITE_URL).href;
+  } catch {
+    return raw;
+  }
+}
+
+function setHeadMeta(selector, value, attribute = "content") {
+  const element = document.head?.querySelector(selector);
+  if (!element || !value) return;
+  element.setAttribute(attribute, value);
+}
+
+function updatePostSeoMeta(post = {}) {
+  const title = `${post.title || "Story"} | Kimia's Kravings`;
+  const description =
+    truncateText(richContentToText(post.excerpt || post.content || ""), 155) ||
+    "Read a Kimia's Kravings story from Kimia Kalbasi across food, travel, wellness, lifestyle, and brand features.";
+  const postUrl = `${SITE_URL}/blog/${encodeURIComponent(post.slug || "")}`;
+  const imageUrl = resolveAbsoluteUrl(post.image || BLOG_DEFAULT_IMAGE);
+
+  document.title = title;
+  setHeadMeta('link[rel="canonical"]', postUrl, "href");
+  setHeadMeta('meta[name="description"]', description);
+  setHeadMeta('meta[property="og:title"]', title);
+  setHeadMeta('meta[property="og:description"]', description);
+  setHeadMeta('meta[property="og:url"]', postUrl);
+  setHeadMeta('meta[property="og:image"]', imageUrl);
+  setHeadMeta('meta[property="og:image:alt"]', post.title || "Kimia's Kravings story");
+  setHeadMeta('meta[name="twitter:title"]', title);
+  setHeadMeta('meta[name="twitter:description"]', description);
+  setHeadMeta('meta[name="twitter:image"]', imageUrl);
+}
+
 function renderSinglePostPage(payload) {
   const { post, previous, next, comments: commentsList = [] } = payload;
   const title = document.getElementById("singlePostTitle");
@@ -1259,7 +1298,7 @@ function renderSinglePostPage(payload) {
   const media = document.querySelector(".single-post-media");
   const mainImage = post.image || BLOG_DEFAULT_IMAGE;
 
-  document.title = `${post.title} | Kimia's Kravings`;
+  updatePostSeoMeta(post);
   if (title) title.textContent = post.title;
   if (kicker) kicker.textContent = post.category;
   if (meta) {

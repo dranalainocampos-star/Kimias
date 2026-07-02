@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "sync:public": "cp index.html about.html blog.html blog-post.html consulting.html partnerships.html portfolio.html contact.html admin.html style.css script.js favicon.png apple-touch-icon.png \"UNIT 90K (28).png\" \"UNIT 90K (28).jpg\" \"UNIT 90K (29).png\" \"UNIT 90K (32).png\" \"UNIT 90K (34).png\" \"UNIT 90K (34).jpg\" \"5ffaaa20-c9ed-45fb-b1e5-eb05d34aa6fd.jpeg\" about-portrait.jpg partners.jpg public/",
+    "sync:public": "cp index.html about.html blog.html blog-post.html consulting.html partnerships.html portfolio.html contact.html admin.html robots.txt sitemap.xml style.css script.js favicon.png apple-touch-icon.png \"UNIT 90K (28).png\" \"UNIT 90K (28).jpg\" \"UNIT 90K (29).png\" \"UNIT 90K (32).png\" \"UNIT 90K (34).png\" \"UNIT 90K (34).jpg\" \"5ffaaa20-c9ed-45fb-b1e5-eb05d34aa6fd.jpeg\" about-portrait.jpg partners.jpg public/",
     "start": "node backend.js",
     "dev": "node --watch backend.js",
     "migrate:postgres": "node scripts/migrate-sqlite-to-postgres.js",
