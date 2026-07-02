@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-    <title>Blog Post | Kimia's Kravings</title>
+    <title>Portfolio Story | Kimia's Kravings</title>
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -18,11 +18,12 @@
     <canvas id="paint-canvas"></canvas>
     <div id="cursor-dot"></div>
     <div class="mobile-nav" id="mobileNav">
-      <a href="/" class="mobile-nav-link">Home</a>
-      <a href="/about" class="mobile-nav-link">About Kimia</a>
-      <a href="/blog" class="mobile-nav-link">Blog</a>
+      <a href="/" class="mobile-nav-link">Home page</a>
+      <a href="/about" class="mobile-nav-link">About Me</a>
       <a href="/consulting" class="mobile-nav-link">Consulting</a>
       <a href="/partnerships" class="mobile-nav-link">Partnerships</a>
+      <a href="/portfolio" class="mobile-nav-link">Portfolio</a>
+      <a href="/contact" class="mobile-nav-link">Contact</a>
     </div>
 
     <header class="header" id="header">
@@ -36,14 +37,12 @@
           Kimia's Kravings<span>.</span>
         </a>
         <nav class="desktop-nav items-center">
-          <a href="/" class="nav-link">Home</a>
-          <a href="/about" class="nav-link">About Kimia</a>
-          <a href="/blog" class="nav-link active">Blog</a>
+          <a href="/" class="nav-link">Home page</a>
+          <a href="/about" class="nav-link">About Me</a>
           <a href="/consulting" class="nav-link">Consulting</a>
           <a href="/partnerships" class="nav-link">Partnerships</a>
-          <a href="/contact" class="btn-primary nav-cta-compact">
-            <span>Work With Kimia</span>
-          </a>
+          <a href="/portfolio" class="nav-link active">Portfolio</a>
+          <a href="/contact" class="nav-link nav-contact-cta">Contact Kimia</a>
         </nav>
 
         <button class="mobile-menu-btn" id="menuBtn" aria-label="Toggle Menu">
@@ -64,7 +63,7 @@
         />
         <div class="single-post-cover-shade"></div>
         <div class="single-post-cover-content">
-          <a href="/blog" class="post-back-link">&larr; Back to Blog</a>
+          <a href="/portfolio" class="post-back-link">&larr; Back to Portfolio</a>
           <div class="diabla-eyebrow single-post-kicker" id="singlePostKicker">
             Loading
           </div>
@@ -164,9 +163,9 @@
           <div class="footer-links-group">
             <h4>Navigation</h4>
             <div class="footer-links">
-              <a href="/">Home</a><a href="/about">About</a>
-              <a href="/blog">Blog</a><a href="/consulting">Services</a>
-              <a href="/partnerships">Partnerships</a>
+              <a href="/">Home page</a><a href="/about">About Me</a>
+              <a href="/consulting">Consulting</a><a href="/partnerships">Partnerships</a>
+              <a href="/portfolio">Portfolio</a><a href="/contact">Contact</a>
             </div>
           </div>
           <div class="footer-links-group">
@@ -186,6 +185,6 @@
     </footer>
 
     <div id="toast" class="toast">Success Module Triggered</div>
-    <script defer src="/script.js?v=1.0.5"></script>
+    <script defer src="/script.js?v=1.0.6"></script>
   </body>
 </html>

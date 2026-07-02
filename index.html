@@ -19,11 +19,12 @@
     <canvas id="paint-canvas"></canvas>
     <div id="cursor-dot"></div>
     <div class="mobile-nav" id="mobileNav">
-      <a href="/" class="mobile-nav-link">Home</a>
-      <a href="/about" class="mobile-nav-link">About Kimia</a>
-      <a href="/blog" class="mobile-nav-link">Blog</a>
+      <a href="/" class="mobile-nav-link">Home page</a>
+      <a href="/about" class="mobile-nav-link">About Me</a>
       <a href="/consulting" class="mobile-nav-link">Consulting</a>
       <a href="/partnerships" class="mobile-nav-link">Partnerships</a>
+      <a href="/portfolio" class="mobile-nav-link">Portfolio</a>
+      <a href="/contact" class="mobile-nav-link">Contact</a>
     </div>
 
     <header class="header" id="header">
@@ -37,14 +38,12 @@
           Kimia's Kravings<span>.</span>
         </a>
         <nav class="desktop-nav items-center">
-          <a href="/" class="nav-link active">Home</a>
-          <a href="/about" class="nav-link">About Kimia</a>
-          <a href="/blog" class="nav-link">Blog</a>
+          <a href="/" class="nav-link active">Home page</a>
+          <a href="/about" class="nav-link">About Me</a>
           <a href="/consulting" class="nav-link">Consulting</a>
           <a href="/partnerships" class="nav-link">Partnerships</a>
-          <a href="/contact" class="btn-primary nav-cta-compact">
-            <span>Work With Kimia</span>
-          </a>
+          <a href="/portfolio" class="nav-link">Portfolio</a>
+          <a href="/contact" class="nav-link nav-contact-cta">Contact Kimia</a>
         </nav>
 
         <button class="mobile-menu-btn" id="menuBtn" aria-label="Toggle Menu">
@@ -243,13 +242,13 @@
       <div class="container">
         <div class="flex items-center justify-between featured-header">
           <div class="blog-heading-copy">
-            <h2 class="tracking-stark section-title">Latest on the Blog</h2>
+            <h2 class="tracking-stark section-title">Latest Kravings</h2>
             <p class="blog-section-subheading">
               Explore fresh stories, guides, and local finds waiting for your
               next read.
             </p>
           </div>
-          <a href="/blog" class="nav-link text-red-link">Read More &rarr;</a>
+          <a href="/portfolio" class="nav-link text-red-link">View Portfolio &rarr;</a>
         </div>
 
         <div
@@ -257,12 +256,12 @@
           id="homeBlogGrid"
           data-blog-grid
           data-blog-variant="home"
-          data-blog-batch="9"
-          data-blog-initial="9"
+          data-blog-batch="24"
+          data-blog-initial="24"
         ></div>
         <div class="blog-view-all-wrap" id="blog-view-all">
-          <a href="/blog" class="btn-primary blog-view-all-link">
-            <span>Read More</span>
+          <a href="/portfolio" class="btn-primary blog-view-all-link">
+            <span>View Portfolio</span>
             <svg class="icon"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
           </a>
         </div>
@@ -1057,6 +1056,6 @@
       </div>
     </footer>
 
-    <script defer src="script.js?v=1.0.5"></script>
+    <script defer src="script.js?v=1.0.6"></script>
   </body>
 </html>

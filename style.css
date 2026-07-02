@@ -10154,7 +10154,11 @@ body:not(.page-admin) .nav-cta-compact {
 :root {
   --dark-navy-blue: #1b2a41;
   --crimson-red: #c5283d;
-  --crimson-red-deep: #a92235;
+  --crimson-red-deep: color-mix(
+    in srgb,
+    var(--crimson-red) 88%,
+    var(--dark-navy-blue)
+  );
 
   --diabla-red: var(--dark-navy-blue);
   --diabla-coral-deep: var(--dark-navy-blue);
@@ -10163,10 +10167,10 @@ body:not(.page-admin) .nav-cta-compact {
   --diabla-hover-bg: var(--crimson-red);
   --diabla-pointer: var(--crimson-red);
   --diabla-anthracite: var(--dark-navy-blue);
-  --diabla-white: #f8f9fb;
-  --diabla-light-grey: #e9ecf1;
+  --diabla-white: color-mix(in srgb, var(--dark-navy-blue) 4%, white);
+  --diabla-light-grey: color-mix(in srgb, var(--dark-navy-blue) 9%, white);
   --diabla-border: var(--dark-navy-blue);
-  --diabla-muted: var(--dark-navy-blue);
+  --diabla-muted: var(--crimson-red);
   --diabla-sand-yellow: var(--crimson-red);
   --diabla-olive-green: var(--crimson-red);
   --diabla-dusky-pink: var(--crimson-red);
@@ -12383,6 +12387,9 @@ body:not(.page-admin) .hero-viewport::after {
 body:not(.page-admin) :is(.header, .brand-header) {
   background: var(--diabla-white) !important;
   border-bottom-color: var(--dark-navy-blue) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
 }
 
 body:not(.page-admin) :is(.logo, .nav-link, h1, h2, h3, h4, .tracking-stark, .hero-title, .section-title, .page-hero-title, .cons-hero-title, .about-quote, .story-title, .post-title, .card-title, .does-title, .channel-title) {
@@ -12475,6 +12482,233 @@ body.page-contact .channels-card :is(.eyebrow, .channel-title, .channel-detail, 
 
 body.page-contact .channels-card .channel-desc {
   color: rgba(248, 249, 251, 0.84) !important;
+}
+
+/* Kimias Design 3 reference lock: flat editorial surfaces, navy rules, crimson accents. */
+body:not(.page-admin)::before,
+body:not(.page-admin) :is(.hero-orb, .hero-orb-1, .hero-orb-2, .hero-orb-3),
+body:not(.page-admin) .footer::before,
+body:not(.page-admin) .footer::after,
+body:not(.page-admin) .brand-footer::before,
+body:not(.page-admin) .brand-footer::after,
+body:not(.page-admin) .newsletter-section::before,
+body:not(.page-admin) .newsletter-section::after,
+body:not(.page-admin) .cta-band::before,
+body:not(.page-admin) .cta-band::after,
+body:not(.page-admin) .partnership-cta::before,
+body:not(.page-admin) .partnership-cta::after,
+body:not(.page-admin) .channels-card::before,
+body:not(.page-admin) .channels-card::after,
+body:not(.page-admin) .page-hero::before,
+body:not(.page-admin) .page-hero::after,
+body:not(.page-admin) .cons-hero::before,
+body:not(.page-admin) .cons-hero::after {
+  display: none !important;
+}
+
+body:not(.page-admin) :is(
+    .hero-viewport,
+    .blog-hero,
+    .page-hero,
+    .cons-hero,
+    .hero-section,
+    .partnership-section,
+    .partner-roster-section,
+    .posts-section,
+    .single-post-media,
+    .single-post-body,
+    .comments-section
+  ) {
+  background: var(--diabla-white) !important;
+  background-image: none !important;
+  color: var(--dark-navy-blue) !important;
+}
+
+body.page-consulting .cons-hero :is(.diabla-eyebrow) {
+  color: var(--crimson-red) !important;
+}
+
+body.page-consulting .cons-hero :is(.cons-hero-title, .u-consulting-4) {
+  color: var(--dark-navy-blue) !important;
+}
+
+body.page-consulting .cons-hero .u-consulting-5 {
+  color: rgba(27, 42, 65, 0.82) !important;
+}
+
+body.page-consulting .cons-hero .btn-primary {
+  background: var(--crimson-red) !important;
+  border-color: var(--crimson-red) !important;
+  color: var(--diabla-white) !important;
+}
+
+body:not(.page-admin) :is(
+    .featured-section,
+    .social-feed-section,
+    .does-section,
+    .newsletter-section,
+    .partner-fit-section,
+    .partnership-process,
+    .contact-grid,
+    .main-content
+  ) {
+  background: var(--diabla-light-grey) !important;
+  background-image: none !important;
+}
+
+body:not(.page-admin) :is(
+    .hero-viewport,
+    .blog-hero,
+    .page-hero,
+    .cons-hero,
+    .hero-section,
+    .stats-block-row,
+    .featured-in,
+    .featured-section,
+    .posts-section,
+    .newsletter-section,
+    .partner-roster-section,
+    .partnership-section,
+    .partner-fit-section,
+    .partnership-process,
+    .partnership-cta,
+    .contact-grid,
+    .single-post-media,
+    .single-post-body,
+    .comments-section
+  ) {
+  border-color: var(--dark-navy-blue) !important;
+}
+
+body:not(.page-admin) :is(
+    .card,
+    .post-card,
+    .service-card,
+    .channels-card,
+    .form-card,
+    .partner-card,
+    .stat-card,
+    .comment-form-panel,
+    .modal,
+    .login-box,
+    .social-embed-card,
+    .admin-empty-card,
+    .hero-badge,
+    .page-hero-image,
+    .partnership-hero-media,
+    .partner-logo-collage-frame
+  ) {
+  background: var(--diabla-light-grey) !important;
+  border: 2px solid var(--dark-navy-blue) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+body.page-contact .logo .logo-kravings,
+body.page-contact .footer-logo .logo-kravings {
+  color: var(--dark-navy-blue) !important;
+}
+
+body.page-contact .channels-card {
+  background: var(--crimson-red) !important;
+  border-color: var(--dark-navy-blue) !important;
+  color: var(--diabla-white) !important;
+}
+
+body.page-contact .channels-card :is(
+    .eyebrow,
+    .channel-title,
+    .channel-detail,
+    .channel-detail a,
+    .contact-card-head h2,
+    p
+  ) {
+  color: var(--diabla-white) !important;
+}
+
+body.page-contact .channels-card :is(.contact-card-head, .channel-group) {
+  border-color: rgba(248, 249, 251, 0.48) !important;
+}
+
+body.page-index .hero-badge,
+body:not(.page-admin) :is(.featured-in, .card-label, .card-label-sand, .card-label-pink, .card-label-olive, .media-note) {
+  background: var(--crimson-red) !important;
+  border-color: var(--dark-navy-blue) !important;
+  color: var(--diabla-white) !important;
+}
+
+body:not(.page-admin) :is(.btn-primary, .btn-light, .brand-button, .btn-terra, .login-btn, .nl-btn, .comment-submit, .load-more-btn, .card-action-btn, .btn-white) {
+  background: var(--crimson-red) !important;
+  border-color: var(--crimson-red) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  color: var(--diabla-white) !important;
+}
+
+body:not(.page-admin) :is(.btn-primary, .btn-light, .brand-button, .btn-terra, .login-btn, .nl-btn, .comment-submit, .load-more-btn, .card-action-btn, .btn-white):hover {
+  background: var(--crimson-red-deep) !important;
+  border-color: var(--crimson-red-deep) !important;
+  color: var(--diabla-white) !important;
+  transform: none !important;
+}
+
+body:not(.page-admin) .desktop-nav .nav-contact-cta {
+  align-items: center !important;
+  background: var(--crimson-red) !important;
+  border: 2px solid var(--crimson-red) !important;
+  color: var(--diabla-white) !important;
+  display: inline-flex !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  justify-content: center !important;
+  letter-spacing: 0.16em !important;
+  line-height: 1 !important;
+  margin-left: 0.15rem !important;
+  min-height: 44px !important;
+  min-width: 166px !important;
+  padding: 0 1.35rem !important;
+  text-align: center !important;
+  text-transform: uppercase !important;
+}
+
+body:not(.page-admin) .desktop-nav .nav-contact-cta:hover,
+body:not(.page-admin) .desktop-nav .nav-contact-cta.active {
+  background: var(--crimson-red-deep) !important;
+  border-color: var(--crimson-red-deep) !important;
+  color: var(--diabla-white) !important;
+}
+
+@media (max-width: 1600px) and (min-width: 1181px) {
+  body:not(.page-admin) .desktop-nav .nav-contact-cta {
+    min-width: 156px !important;
+    padding-left: 1.1rem !important;
+    padding-right: 1.1rem !important;
+  }
+}
+
+@media (max-width: 1180px) and (min-width: 768px) {
+  body:not(.page-admin) .desktop-nav .nav-contact-cta {
+    font-size: 9px !important;
+    min-width: 132px !important;
+    padding-left: 0.7rem !important;
+    padding-right: 0.7rem !important;
+  }
+}
+
+body:not(.page-admin) :is(.btn-outline, .brand-link, .post-read, .view-site-btn) {
+  border: 2px solid var(--crimson-red) !important;
+  border-radius: 0 !important;
+  color: var(--crimson-red) !important;
+}
+
+body:not(.page-admin) :is(.btn-outline, .brand-link, .post-read, .view-site-btn):hover {
+  background: var(--crimson-red) !important;
+  color: var(--diabla-white) !important;
+  transform: none !important;
+}
+
+body:not(.page-admin) img {
+  filter: grayscale(8%) !important;
 }
 
 /* Reference bordered strategy CTA. */
@@ -12603,6 +12837,29 @@ body:not(.page-admin) .book-section .btn-white .icon {
     font-size: 15px !important;
     line-height: 1.45 !important;
   }
+}
+
+/* Keep single post hero copy readable over every uploaded image. */
+body.page-blog-post .single-post-cover-shade {
+  height: 72% !important;
+  background: linear-gradient(
+    180deg,
+    rgba(9, 17, 29, 0) 0%,
+    rgba(9, 17, 29, 0.58) 32%,
+    rgba(9, 17, 29, 0.96) 100%
+  ) !important;
+}
+
+body.page-blog-post .single-post-cover-content :is(.single-post-title, .single-post-title *) {
+  color: var(--diabla-white, #f8f9fb) !important;
+  text-shadow:
+    0 3px 24px rgba(0, 0, 0, 0.68),
+    0 1px 2px rgba(0, 0, 0, 0.72) !important;
+}
+
+body.page-blog-post .single-post-cover-content :is(.post-back-link, .single-post-meta, .single-post-meta *) {
+  color: rgba(248, 249, 251, 0.92) !important;
+  text-shadow: 0 1px 14px rgba(0, 0, 0, 0.68) !important;
 }
 
 /* Admin blog editor overrides must sit after broad site typography rules. */

@@ -168,6 +168,42 @@ let blogData = [
 
 const fallbackBlogData = blogData.map((post) => ({ ...post }));
 
+function parseLoosePostDate(value = "") {
+  const raw = String(value || "").trim();
+  if (!raw) return null;
+
+  const date = new Date(raw);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function getLatestPostSortTime(post = {}) {
+  const rawDate = String(post.date || "").trim();
+  const rawDateLower = rawDate.toLowerCase();
+  const timestamp =
+    parsePostTimestamp(rawDate) ||
+    (rawDateLower === "just now" || !rawDate
+      ? parsePostTimestamp(post.createdAt) || parsePostTimestamp(post.updatedAt)
+      : parseLoosePostDate(rawDate));
+
+  return timestamp ? timestamp.getTime() : 0;
+}
+
+function sortPostsByLatestSequence(posts = []) {
+  return [...posts].sort((postA, postB) => {
+    const timeA = getLatestPostSortTime(postA);
+    const timeB = getLatestPostSortTime(postB);
+    if (timeA !== timeB) return timeB - timeA;
+
+    const idA = Number(postA.id);
+    const idB = Number(postB.id);
+    if (Number.isFinite(idA) && Number.isFinite(idB) && idA !== idB) {
+      return idB - idA;
+    }
+
+    return 0;
+  });
+}
+
 const categoryColorClassMap = {
   sand: "card-label-sand",
   pink: "card-label-pink",
@@ -531,8 +567,11 @@ async function apiRequest(path, options = {}) {
 function applyLoadedPostData(loadedPosts = [], options = {}) {
   if (!Array.isArray(loadedPosts) || !loadedPosts.length) return;
 
-  const { padHomeFeatured = false } = options;
-  blogData = loadedPosts.map((post) => ({ ...post }));
+  const { padHomeFeatured = false, latestFirst = false } = options;
+  const normalizedPosts = loadedPosts.map((post) => ({ ...post }));
+  blogData = latestFirst
+    ? sortPostsByLatestSequence(normalizedPosts)
+    : normalizedPosts;
 
   if (padHomeFeatured) {
     fallbackBlogData.forEach((post) => {
@@ -540,6 +579,10 @@ function applyLoadedPostData(loadedPosts = [], options = {}) {
       if (blogData.some((item) => item.slug === post.slug)) return;
       blogData.push({ ...post });
     });
+
+    if (latestFirst) {
+      blogData = sortPostsByLatestSequence(blogData);
+    }
   }
 
   posts = blogData.map((post) => ({
@@ -573,10 +616,11 @@ async function loadInitialData() {
   const requestVersion = postDataVersion;
 
   try {
-    const payload = await apiRequest("/posts?summary=1&status=Published");
+    const payload = await apiRequest("/posts?summary=1&status=Published&order=latest");
     if (requestVersion !== postDataVersion) return;
     applyLoadedPostData(payload.posts, {
       padHomeFeatured: document.body.classList.contains("page-index"),
+      latestFirst: true,
     });
   } catch (error) {
     console.warn("Using local fallback blog data:", error.message);

@@ -98,6 +98,13 @@
       }
     },
     {
+      "src": "/portfolio\\.html",
+      "status": 308,
+      "headers": {
+        "Location": "/portfolio"
+      }
+    },
+    {
       "src": "/contact\\.html",
       "status": 308,
       "headers": {
@@ -135,6 +142,10 @@
     {
       "src": "/partnerships",
       "dest": "/partnerships.html"
+    },
+    {
+      "src": "/portfolio",
+      "dest": "/portfolio.html"
     },
     {
       "src": "/contact",

@@ -453,6 +453,59 @@ function toPost(row) {
   };
 }
 
+function parsePostTimestamp(value = "") {
+  const raw = String(value || "").trim();
+  if (!raw) return null;
+
+  const isTimestamp =
+    /^\d{4}-\d{2}-\d{2}(?:[T\s]\d{2}:\d{2}(?::\d{2})?(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?)?$/.test(raw);
+  if (!isTimestamp) return null;
+
+  const isSQLiteTimestamp = /^\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}/.test(raw);
+  const hasExplicitTimezone = /(?:Z|[+-]\d{2}:?\d{2})$/i.test(raw);
+  const normalized = raw.includes("T") ? raw : raw.replace(" ", "T");
+  const timestamp = isSQLiteTimestamp && !hasExplicitTimezone ? `${normalized}Z` : normalized;
+  const date = new Date(timestamp);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function parseLoosePostDate(value = "") {
+  const raw = String(value || "").trim();
+  if (!raw) return null;
+
+  const date = new Date(raw);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function getLatestPostSortTime(post = {}) {
+  const rawDate = String(post.date || post.publishedAt || post.published_at || "").trim();
+  const rawDateLower = rawDate.toLowerCase();
+  const timestamp =
+    parsePostTimestamp(rawDate) ||
+    (rawDateLower === "just now" || !rawDate
+      ? parsePostTimestamp(post.createdAt || post.created_at) ||
+        parsePostTimestamp(post.updatedAt || post.updated_at)
+      : parseLoosePostDate(rawDate));
+
+  return timestamp ? timestamp.getTime() : 0;
+}
+
+function sortPostsByLatestSequence(posts = []) {
+  return [...posts].sort((postA, postB) => {
+    const timeA = getLatestPostSortTime(postA);
+    const timeB = getLatestPostSortTime(postB);
+    if (timeA !== timeB) return timeB - timeA;
+
+    const idA = Number(postA.id);
+    const idB = Number(postB.id);
+    if (Number.isFinite(idA) && Number.isFinite(idB) && idA !== idB) {
+      return idB - idA;
+    }
+
+    return 0;
+  });
+}
+
 function toComment(row) {
   return {
     id: row.id,
@@ -561,6 +614,7 @@ async function listPosts(filters = {}) {
   const category = String(filters.category || "").trim().toLowerCase();
   const search = String(filters.search || "").trim().toLowerCase();
   const summary = Boolean(filters.summary);
+  const orderDirection = filters.order === "original" ? "ASC" : "DESC";
   const columns = summary
     ? "id, title, category, location, category_color, image, slug, excerpt, published_at, status, created_at, updated_at"
     : "*";
@@ -589,7 +643,7 @@ async function listPosts(filters = {}) {
       SELECT ${columns}
       FROM posts
       ${where.length ? `WHERE ${where.join(" AND ")}` : ""}
-      ORDER BY id DESC
+      ORDER BY id ${orderDirection}
     `;
     return (await sql.unsafe(query, params)).map(toPost);
   }
@@ -616,7 +670,7 @@ async function listPosts(filters = {}) {
     SELECT ${columns}
     FROM posts
     ${where.length ? `WHERE ${where.join(" AND ")}` : ""}
-    ORDER BY id DESC
+    ORDER BY id ${orderDirection}
   `;
   return db.prepare(query).all(params).map(toPost);
 }
@@ -640,11 +694,14 @@ async function getPublishedPostBySlug(slug) {
 }
 
 async function listPublishedPosts() {
+  let posts = [];
   if (USE_POSTGRES_DATABASE) {
-    return (await sql`SELECT * FROM posts WHERE status = 'Published' ORDER BY id DESC`).map(toPost);
+    posts = (await sql`SELECT * FROM posts WHERE status = 'Published'`).map(toPost);
+    return sortPostsByLatestSequence(posts);
   }
 
-  return db.prepare("SELECT * FROM posts WHERE status = 'Published' ORDER BY id DESC").all().map(toPost);
+  posts = db.prepare("SELECT * FROM posts WHERE status = 'Published'").all().map(toPost);
+  return sortPostsByLatestSequence(posts);
 }
 
 async function listApprovedCommentsForPost(postId) {
@@ -1004,6 +1061,7 @@ const cleanRouteRedirects = {
   "/about.html": "/about",
   "/consulting.html": "/consulting",
   "/partnerships.html": "/partnerships",
+  "/portfolio.html": "/portfolio",
   "/contact.html": "/contact",
 };
 
@@ -1021,6 +1079,7 @@ const pageRoutes = {
   "/about": "about.html",
   "/consulting": "consulting.html",
   "/partnerships": "partnerships.html",
+  "/portfolio": "portfolio.html",
   "/contact": "contact.html",
 };
 
@@ -1085,6 +1144,8 @@ app.get("/api/posts", async (req, res, next) => {
   const status = String(req.query.status || "").trim();
   const category = String(req.query.category || "").trim().toLowerCase();
   const search = String(req.query.search || "").trim().toLowerCase();
+  const requestedOrder = String(req.query.order || "").trim().toLowerCase();
+  const order = ["latest", "original"].includes(requestedOrder) ? requestedOrder : "";
   const summary = ["1", "true", "yes"].includes(
     String(req.query.summary || "").trim().toLowerCase(),
   );
@@ -1096,7 +1157,12 @@ app.get("/api/posts", async (req, res, next) => {
       res.setHeader("Cache-Control", "no-store");
     }
 
-    const posts = (await listPosts({ status, category, search, summary })).map((post) => {
+    const orderedPosts =
+      order === "latest"
+        ? sortPostsByLatestSequence(await listPosts({ status, category, search, summary }))
+        : await listPosts({ status, category, search, summary, order });
+
+    const posts = orderedPosts.map((post) => {
       if (!summary) return post;
       const summaryPost = { ...post };
       delete summaryPost.content;
