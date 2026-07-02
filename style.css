@@ -12336,6 +12336,275 @@ body.page-contact {
   box-shadow: 0 12px 30px rgba(27, 42, 65, 0.22) !important;
 }
 
+/* Approved Kimias Design 3 palette restoration. */
+:root {
+  --dark-navy-blue: #1b2a41;
+  --crimson-red: #c5283d;
+  --crimson-red-deep: #a92235;
+
+  --diabla-red: var(--dark-navy-blue);
+  --diabla-coral-deep: var(--dark-navy-blue);
+  --diabla-turquoise: var(--crimson-red);
+  --diabla-turquoise-deep: var(--crimson-red-deep);
+  --diabla-hover-bg: var(--crimson-red);
+  --diabla-pointer: var(--crimson-red);
+  --diabla-anthracite: var(--dark-navy-blue);
+  --diabla-white: #f8f9fb;
+  --diabla-light-grey: #e9ecf1;
+  --diabla-border: var(--dark-navy-blue);
+  --diabla-muted: var(--dark-navy-blue);
+  --diabla-sand-yellow: var(--crimson-red);
+  --diabla-olive-green: var(--crimson-red);
+  --diabla-dusky-pink: var(--crimson-red);
+  --diabla-accent: var(--crimson-red);
+  --glow-red: rgba(197, 40, 61, 0.3);
+  --glow-orange: rgba(197, 40, 61, 0.22);
+
+  --kk-salmon: var(--crimson-red);
+  --kk-salmon-deep: var(--crimson-red-deep);
+  --kk-yellow: var(--crimson-red);
+  --kk-cream: var(--diabla-white);
+  --kk-ink: var(--dark-navy-blue);
+  --kk-muted: var(--dark-navy-blue);
+  --kk-teal: var(--crimson-red);
+  --kk-oat: var(--diabla-light-grey);
+}
+
+body:not(.page-admin) {
+  background: var(--diabla-white) !important;
+  color: var(--dark-navy-blue) !important;
+}
+
+body:not(.page-admin) .hero-orb,
+body:not(.page-admin) .hero-viewport::after {
+  display: none !important;
+}
+
+body:not(.page-admin) :is(.header, .brand-header) {
+  background: var(--diabla-white) !important;
+  border-bottom-color: var(--dark-navy-blue) !important;
+}
+
+body:not(.page-admin) :is(.logo, .nav-link, h1, h2, h3, h4, .tracking-stark, .hero-title, .section-title, .page-hero-title, .cons-hero-title, .about-quote, .story-title, .post-title, .card-title, .does-title, .channel-title) {
+  color: var(--dark-navy-blue) !important;
+}
+
+body:not(.page-admin) :is(.logo span, .footer-logo span, .diabla-eyebrow, .brand-kicker, .hero-badge-kicker, .card-eyebrow, .post-cat-label, .post-meta, .post-date, .form-label) {
+  color: var(--crimson-red) !important;
+}
+
+body.page-index .hero-title .headline-crimson {
+  color: var(--crimson-red) !important;
+  text-shadow: 0.055em 0.055em 0 rgba(197, 40, 61, 0.12) !important;
+}
+
+body:not(.page-admin) :is(.hero-subtext, .text-muted, p, li, .card-desc, .post-excerpt, .channel-desc, .form-subtitle, .footer-description) {
+  color: rgba(27, 42, 65, 0.82) !important;
+}
+
+body:not(.page-admin) :is(.btn-primary, .btn-light, .brand-button, .btn-terra, .login-btn, .nl-btn, .comment-submit, .load-more-btn, .card-action-btn) {
+  background: var(--crimson-red) !important;
+  border-color: var(--crimson-red) !important;
+  color: var(--diabla-white) !important;
+}
+
+body:not(.page-admin) :is(.btn-primary, .btn-light, .brand-button, .btn-terra, .login-btn, .nl-btn, .comment-submit, .load-more-btn, .card-action-btn):hover {
+  background: var(--crimson-red-deep) !important;
+  border-color: var(--crimson-red-deep) !important;
+  color: var(--diabla-white) !important;
+}
+
+body:not(.page-admin) :is(.btn-outline, .brand-link, .post-read, .view-site-btn) {
+  border-color: var(--crimson-red) !important;
+  color: var(--crimson-red) !important;
+}
+
+body:not(.page-admin) :is(.btn-outline, .brand-link, .post-read, .view-site-btn):hover {
+  background: var(--crimson-red) !important;
+  color: var(--diabla-white) !important;
+}
+
+body.page-index .hero-split-image {
+  background: var(--dark-navy-blue) !important;
+}
+
+body.page-index .hero-split-image img {
+  opacity: 1 !important;
+}
+
+body.page-index .hero-badge {
+  background: var(--crimson-red) !important;
+  border-color: var(--dark-navy-blue) !important;
+  border-top: 2px solid var(--dark-navy-blue) !important;
+  border-right: 2px solid var(--dark-navy-blue) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  color: var(--diabla-white) !important;
+}
+
+body.page-index .hero-badge :is(.hero-badge-kicker, .hero-badge-source) {
+  color: var(--diabla-white) !important;
+}
+
+body:not(.page-admin) :is(.featured-in, .card-label, .card-label-sand, .card-label-pink, .card-label-olive) {
+  background: var(--crimson-red) !important;
+  color: var(--diabla-white) !important;
+}
+
+body:not(.page-admin) .featured-in::before,
+body:not(.page-admin) .featured-in::after {
+  display: none !important;
+}
+
+body:not(.page-admin) .footer {
+  background: var(--dark-navy-blue) !important;
+  color: var(--diabla-white) !important;
+}
+
+body:not(.page-admin) .footer :is(h1, h2, h3, h4, p, a, .footer-logo, .footer-description, .footer-bottom) {
+  color: var(--diabla-white) !important;
+}
+
+body:not(.page-admin) :is(.mobile-nav, .sidebar) {
+  background: var(--dark-navy-blue) !important;
+}
+
+body.page-contact .channels-card :is(.eyebrow, .channel-title, .channel-detail, .channel-detail a, .contact-card-head h2) {
+  color: var(--diabla-white) !important;
+}
+
+body.page-contact .channels-card .channel-desc {
+  color: rgba(248, 249, 251, 0.84) !important;
+}
+
+/* Reference bordered strategy CTA. */
+body:not(.page-admin) .book-section {
+  background: var(--diabla-white) !important;
+  background-image: none !important;
+  border-bottom: 0 !important;
+  color: var(--dark-navy-blue) !important;
+  overflow: visible !important;
+  padding: clamp(4rem, 7vw, 7rem) 0 !important;
+}
+
+body:not(.page-admin) .book-section::before {
+  display: none !important;
+}
+
+body:not(.page-admin) .book-section .container {
+  max-width: none !important;
+  padding-left: clamp(1.25rem, 3.75vw, 4.75rem) !important;
+  padding-right: clamp(1.25rem, 3.75vw, 4.75rem) !important;
+}
+
+body:not(.page-admin) .book-section .book-inner {
+  align-items: flex-start !important;
+  background: var(--diabla-light-grey) !important;
+  border: 2px solid var(--dark-navy-blue) !important;
+  color: var(--dark-navy-blue) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: clamp(2.4rem, 4.6vw, 4rem) !important;
+  justify-content: center !important;
+  min-height: clamp(360px, 43vw, 604px) !important;
+  padding: clamp(4rem, 7.1vw, 8.9rem) clamp(1.5rem, 6.6vw, 8.4rem) !important;
+  position: relative !important;
+  text-align: left !important;
+}
+
+body:not(.page-admin) .book-section .book-inner::before {
+  background: var(--crimson-red) !important;
+  content: "" !important;
+  height: 13px !important;
+  left: 50% !important;
+  position: absolute !important;
+  top: 0.6rem !important;
+  transform: translateX(-50%) !important;
+  width: 13px !important;
+}
+
+body:not(.page-admin) .book-section .diabla-eyebrow {
+  color: var(--crimson-red) !important;
+  margin-bottom: clamp(1.6rem, 2.3vw, 2.35rem) !important;
+}
+
+body:not(.page-admin) .book-section .book-title {
+  color: var(--dark-navy-blue) !important;
+  font-size: clamp(38px, 4.25vw, 66px) !important;
+  letter-spacing: 0 !important;
+  line-height: 0.98 !important;
+  margin: 0 !important;
+  max-width: 100% !important;
+  text-align: left !important;
+}
+
+body:not(.page-admin) .book-section .book-sub {
+  color: rgba(27, 42, 65, 0.82) !important;
+  font-size: clamp(17px, 1.2vw, 24px) !important;
+  line-height: 1.35 !important;
+  margin: clamp(1.4rem, 2vw, 1.9rem) 0 0 !important;
+  max-width: 48rem !important;
+  opacity: 1 !important;
+  text-align: left !important;
+}
+
+body:not(.page-admin) .book-section :is(.book-actions, .u-consulting-15) {
+  width: 100% !important;
+}
+
+body:not(.page-admin) .book-section .btn-white {
+  align-items: center !important;
+  background: var(--crimson-red) !important;
+  border: 2px solid var(--crimson-red) !important;
+  color: var(--diabla-white) !important;
+  display: flex !important;
+  font-size: 12px !important;
+  justify-content: space-between !important;
+  letter-spacing: 0.22em !important;
+  min-height: clamp(66px, 4.2vw, 76px) !important;
+  min-width: 0 !important;
+  padding: 0 clamp(1.5rem, 2.6vw, 2.8rem) !important;
+  text-align: left !important;
+  width: 100% !important;
+}
+
+body:not(.page-admin) .book-section .btn-white::before {
+  display: none !important;
+}
+
+body:not(.page-admin) .book-section .btn-white:hover {
+  background: var(--crimson-red-deep) !important;
+  border-color: var(--crimson-red-deep) !important;
+  box-shadow: none !important;
+  color: var(--diabla-white) !important;
+  transform: none !important;
+}
+
+body:not(.page-admin) .book-section .btn-white .icon {
+  flex: 0 0 auto !important;
+}
+
+@media (max-width: 767px) {
+  body:not(.page-admin) .book-section {
+    padding: 3rem 0 !important;
+  }
+
+  body:not(.page-admin) .book-section .book-inner {
+    min-height: 0 !important;
+    padding: 4rem 1.25rem 2rem !important;
+  }
+
+  body:not(.page-admin) .book-section .book-title {
+    font-size: clamp(30px, 8vw, 38px) !important;
+    line-height: 1.02 !important;
+  }
+
+  body:not(.page-admin) .book-section .book-sub {
+    font-size: 15px !important;
+    line-height: 1.45 !important;
+  }
+}
+
 /* Admin blog editor overrides must sit after broad site typography rules. */
 .page-admin .editor-format-select {
   background-color: #f9fafb !important;
