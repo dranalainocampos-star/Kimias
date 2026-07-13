@@ -9434,7 +9434,7 @@ body.mobile-nav-active {
 
 .hero-title .text-accent {
   display: inline-block;
-  text-shadow: 0.055em 0.055em 0 rgba(255, 107, 53, 0.16);
+  text-shadow: none;
 }
 
 .copy-accent {
@@ -12402,7 +12402,7 @@ body:not(.page-admin) :is(.logo span, .footer-logo span, .diabla-eyebrow, .brand
 
 body.page-index .hero-title .headline-crimson {
   color: var(--crimson-red) !important;
-  text-shadow: 0.055em 0.055em 0 rgba(197, 40, 61, 0.12) !important;
+  text-shadow: none !important;
 }
 
 body:not(.page-admin) :is(.hero-subtext, .text-muted, p, li, .card-desc, .post-excerpt, .channel-desc, .form-subtitle, .footer-description) {
@@ -12678,6 +12678,10 @@ body:not(.page-admin) .desktop-nav .nav-contact-cta.active {
   color: var(--diabla-white) !important;
 }
 
+body:not(.page-admin) .mobile-contact-link {
+  display: none !important;
+}
+
 @media (max-width: 1600px) and (min-width: 1181px) {
   body:not(.page-admin) .desktop-nav .nav-contact-cta {
     min-width: 156px !important;
@@ -12692,6 +12696,80 @@ body:not(.page-admin) .desktop-nav .nav-contact-cta.active {
     min-width: 132px !important;
     padding-left: 0.7rem !important;
     padding-right: 0.7rem !important;
+  }
+}
+
+@media (max-width: 1180px) {
+  body:not(.page-admin) .mobile-contact-link {
+    align-items: center !important;
+    background: var(--crimson-red, #c5283d) !important;
+    border: 2px solid var(--crimson-red, #c5283d) !important;
+    color: var(--diabla-white, #f8f9fb) !important;
+    display: inline-flex !important;
+    flex: 0 0 auto !important;
+    font-size: 10px !important;
+    font-weight: 800 !important;
+    justify-content: center !important;
+    letter-spacing: 0.14em !important;
+    line-height: 1 !important;
+    margin-left: auto !important;
+    min-height: 40px !important;
+    padding: 0 0.85rem !important;
+    text-transform: uppercase !important;
+    white-space: nowrap !important;
+  }
+
+  body:not(.page-admin) .mobile-contact-link:hover,
+  body:not(.page-admin) .mobile-contact-link.active {
+    background: var(--crimson-red-deep, #a92235) !important;
+    border-color: var(--crimson-red-deep, #a92235) !important;
+    color: var(--diabla-white, #f8f9fb) !important;
+  }
+
+  body:not(.page-admin) .mobile-menu-btn {
+    flex: 0 0 auto !important;
+    margin-left: 0.65rem !important;
+  }
+}
+
+@media (max-width: 767px) {
+  body:not(.page-admin) .logo {
+    white-space: nowrap !important;
+  }
+
+  body:not(.page-admin) .mobile-contact-link {
+    font-size: 9px !important;
+    letter-spacing: 0.12em !important;
+    min-height: 38px !important;
+    padding-left: 0.7rem !important;
+    padding-right: 0.7rem !important;
+  }
+}
+
+@media (max-width: 390px) {
+  body:not(.page-admin) .logo {
+    font-size: 16px !important;
+    gap: 0.5rem !important;
+  }
+
+  body:not(.page-admin) .logo-icon {
+    height: 24px !important;
+  }
+
+  body:not(.page-admin) .mobile-contact-link {
+    padding-left: 0.6rem !important;
+    padding-right: 0.6rem !important;
+  }
+}
+
+@media (max-width: 350px) {
+  body:not(.page-admin) .logo {
+    font-size: 0 !important;
+    gap: 0 !important;
+  }
+
+  body:not(.page-admin) .logo span {
+    display: none !important;
   }
 }
 
